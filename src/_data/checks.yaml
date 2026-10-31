@@ -1,0 +1,59 @@
+# What the theme's checks test on this site. The checks name no page themselves.
+#
+# - `pages` are the URLs for the accessibility audits and the vertical rhythm check:
+#   every folder in every locale, with an article with an image, an article of text and
+#   a project with a lead image.
+# - `fixtureChecks` are expectations for particular pages. Each has a `page`, with strings
+#   it `contains` or `lacks`, or a `region` and the `parts` it must hold. A site without
+#   such pages lists none, and they are skipped.
+pages:
+  - /en-ca/
+  - /en-ca/articles/
+  - /en-ca/articles/accessible-by-default/
+  - /en-ca/articles/plain-text-lasts/
+  - /en-ca/projects/
+  - /en-ca/projects/katagami/
+  - /en-ca/collaboration/
+  - /en-ca/about/
+  - /fr-ca/
+  - /fr-ca/articles/
+  - /fr-ca/articles/accessible-des-le-depart/
+  - /fr-ca/articles/le-texte-brut-dure/
+  - /fr-ca/projects/
+  - /fr-ca/projects/katagami/
+  - /fr-ca/collaboration/
+  - /fr-ca/about/
+  - /ar/
+  - /ar/articles/
+  - /ar/articles/accessible-by-default/
+  - /ar/articles/plain-text-lasts/
+  - /ar/projects/
+  - /ar/projects/katagami/
+  - /ar/collaboration/
+  - /ar/about/
+
+# French spacing and quotation marks, with code, URLs and times left alone. The placeholder
+# text holds these on purpose: keep them in, or re-point these, when real content replaces it.
+fixtureChecks:
+  - page: /fr-ca/articles/le-texte-brut-dure/
+    contains:
+      - "Note : un fichier"
+      - "dans cinquante ans? Les plus anciens s’ouvrent aujourd’hui sans difficulté; rien n’indique que cela va changer! Une"
+      - "« simples »"
+      - "n’a pas"
+      - "à 12:45"
+      - '<a href="https://www.11ty.dev/" dir="ltr">https://www.11ty.dev/</a>'
+      - '<code dir="ltr">a ; b : c ?</code>'
+      - '<html lang="fr-CA"'
+    lacks: [" "]
+  # Text typed without a space before punctuation stays that way.
+  - page: /fr-ca/articles/vos-mots-vous-appartiennent/
+    contains: ["du jour au lendemain; un dossier"]
+    lacks: [" "]
+  # Interface strings follow the language.
+  - page: /fr-ca/
+    contains: ["Aller au contenu", 'aria-label="Navigation principale"', "Préférences d’affichage"]
+    lacks: ["Skip to content", "Main navigation"]
+  - page: /en-ca/
+    contains: ["’", '<html lang="en-CA"', "Skip to content"]
+    lacks: ["«"]

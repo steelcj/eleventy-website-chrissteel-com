@@ -4,7 +4,7 @@ The personal website of Christopher Steel: a plain, text-first writer's site in 
 
 ## Install, build, serve and check
 
-The site needs Node.js 22 or later; `.nvmrc` selects Node 24 for nvm users.
+The site needs Node.js 22 or later.
 
 ```sh
 npm install
@@ -18,11 +18,13 @@ npm run check              # check the built pages, and that every page has its 
 npm run check:browser      # check the built site in a real browser
 ```
 
-`CLAUDE.md` holds the content rules and the definition of done.
+The pages the checks test are listed in `src/_data/checks.yaml`. `CLAUDE.md` holds the content rules and the definition of done.
+
+The repository follows [uc-automa](https://github.com/steelcj/uc-automa), installed into `.venv/` as the process Creating a New Repository with uc-automa shows. Run `.venv/bin/uc-automa check` before committing.
 
 ## Updating the theme
 
-`themes/katagami/` is a copy of the theme and is never edited here; site changes go in `site/`, `src/` and `src/_data/`. To update the theme, replace `themes/katagami/` with a newer copy, update `THEME_VERSION` with its release and commit, then build and run every check.
+`themes/katagami/` is a copy of the theme; site changes go in `src/` and `src/_data/`. To update the theme, replace `themes/katagami/` with a newer copy, record its release and commit in a new decision record in `en-ca/docs/decisions/`, then build and run every check. For phase 2 only, theme changes are made here first and carried back to the theme's repository; `CLAUDE.md` has the condition.
 
 ## SAT
 

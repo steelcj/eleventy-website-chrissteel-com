@@ -9,7 +9,5 @@ export default function (eleventyConfig) {
   eleventyConfig.setLayoutsDirectory("_layouts"); // virtual only, no folder on disk
   eleventyConfig.setDataDirectory("_data");
   eleventyConfig.setOutputDirectory("_site");
-  eleventyConfig.addWatchTarget("site/");
-  eleventyConfig.addWatchTarget("themes/katagami/");
   eleventyConfig.addPlugin(katagami);
 }

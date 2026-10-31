@@ -31,27 +31,27 @@ SPDX-FileCopyrightText = "2026 Vishpala"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = ["themes/katagami/assets/fonts/atkinson-hyperlegible-next/**"]
+path = ["themes/katagami/assets/vendor/fonts/hyperlegible-next/**"]
 SPDX-FileCopyrightText = "2020-2024 The Atkinson Hyperlegible Next Project Authors (https://github.com/googlefonts/atkinson-hyperlegible-next)"
 SPDX-License-Identifier = "OFL-1.1"
 
 [[annotations]]
-path = ["themes/katagami/assets/fonts/ibm-plex-sans-arabic/**"]
+path = ["themes/katagami/assets/vendor/fonts/ibm-plex-sans-arabic/**"]
 SPDX-FileCopyrightText = "2019 IBM Corp. All rights reserved."
 SPDX-License-Identifier = "OFL-1.1"
 
 [[annotations]]
-path = ["themes/katagami/assets/fonts/noto-naskh-arabic/**"]
+path = ["themes/katagami/assets/vendor/fonts/noto-naskh-arabic/**"]
 SPDX-FileCopyrightText = "2022 The Noto Project Authors (https://github.com/notofonts/arabic)"
 SPDX-License-Identifier = "OFL-1.1"
 
 [[annotations]]
-path = ["themes/katagami/assets/fonts/shippori-mincho/**"]
+path = ["themes/katagami/assets/vendor/fonts/shippori-mincho/**"]
 SPDX-FileCopyrightText = "2021 The Shippori Mincho Project Authors (https://github.com/fontdasu/ShipporiMincho)"
 SPDX-License-Identifier = "OFL-1.1"
 
 [[annotations]]
-path = ["themes/katagami/assets/fonts/zen-kaku-gothic-new/**"]
+path = ["themes/katagami/assets/vendor/fonts/zen-kaku-gothic-new/**"]
 SPDX-FileCopyrightText = "2022 The Zen Project Authors (https://github.com/googlefonts/zen-kakugothic)"
 SPDX-License-Identifier = "OFL-1.1"
 
@@ -100,3 +100,24 @@ SPDX-License-Identifier = "Zlib"
 path = ["themes/katagami/assets/vendor/infusion/README.md"]
 SPDX-FileCopyrightText = "2026 Vishpala"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = [
+  "themes/katagami/i18n/vendor/infusion-messages/contrast.json",
+  "themes/katagami/i18n/vendor/infusion-messages/contrast_ar.json",
+  "themes/katagami/i18n/vendor/infusion-messages/contrast_fr.json",
+  "themes/katagami/i18n/vendor/infusion-messages/lineSpace_ar.json",
+  "themes/katagami/i18n/vendor/infusion-messages/textSize_ar.json",
+]
+SPDX-FileCopyrightText = [
+  "2007-2024 Dinuka De Silva",
+  "2007-2024 Lucendo Development Ltd.",
+  "2007-2024 OCAD University",
+  "2007-2024 Raising the Floor - International",
+  "2007-2024 Raising the Floor - US",
+  "2007-2024 University of California, Berkeley",
+  "2007-2024 University of Cambridge",
+  "2007-2024 University of Toronto",
+  "2026 Vishpala",
+]
+SPDX-License-Identifier = "BSD-3-Clause OR ECL-2.0"

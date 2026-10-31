@@ -13,12 +13,12 @@
     "build": "eleventy",
     "build:production": "ELEVENTY_ENV=production eleventy",
     "start": "eleventy --serve --watch",
-    "lint": "stylelint --allow-empty-input \"themes/**/*.css\" \"site/**/*.css\"",
-    "check": "node scripts/check-pages.mjs",
-    "fixture-images": "node scripts/make-fixture-images.mjs src/media",
-    "vendor-fonts": "node scripts/vendor-fonts.mjs",
-    "check:browser": "node scripts/check-browser.mjs",
-    "vendor-infusion": "node scripts/vendor-infusion.mjs"
+    "lint": "stylelint --allow-empty-input \"themes/**/*.css\"",
+    "check": "node themes/katagami/scripts/check-pages.mjs",
+    "fixture-images": "node themes/katagami/scripts/make-fixture-images.mjs src/media",
+    "vendor-fonts": "node themes/katagami/scripts/vendor-fonts.mjs",
+    "check:browser": "node themes/katagami/scripts/check-browser.mjs",
+    "vendor-infusion": "node themes/katagami/scripts/vendor-infusion.mjs"
   },
   "dependencies": {
     "@11ty/eleventy": "^3.1.7",
@@ -35,5 +35,8 @@
     "playwright": "1.64.1",
     "stylelint": "^17.16.0",
     "stylelint-config-recommended": "^18.0.0"
+  },
+  "stylelint": {
+    "extends": "./themes/katagami/stylelint.json"
   }
 }

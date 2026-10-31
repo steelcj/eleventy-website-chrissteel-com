@@ -1,3 +1,0 @@
-# Every page in this folder is in this language; dir follows from _data/locales.yaml.
-lang: ar
-layout: page.njk
