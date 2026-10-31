@@ -24,7 +24,7 @@ Status: Accepted
 
 Phase 1 built the site from a copy of Katagami at commit 39d93326a4c46830af8f42c4ff5d7b6f9106c8a2 (release 0.5.1), with placeholder content in en-ca, fr-ca and the ar fixture, and adapted the theme's checks to it. It was committed and pushed as `62d8d8d`.
 
-Phase 2 rewrote that history locally, keeping `62d8d8d` under `refs/backup/phase-1-62d8d8d`, so that the repository starts from its sidecar and founding decision. It then set the repository up with uc-automa 0.2.0, made `themes/katagami/` self-contained as Katagami 0.6.0, and moved the site onto it.
+Phase 2 rewrote that history, so that the repository starts from its sidecar and founding decision. It then set the repository up with uc-automa 0.2.0, made `themes/katagami/` self-contained as Katagami 0.6.0, and moved the site onto it. The new history replaced `62d8d8d` on `origin/main` with a force-push, and `62d8d8d` stays in the local clone under `refs/backup/phase-1-62d8d8d`.
 
 ## Inputs
 
@@ -45,16 +45,16 @@ Decisions made during phase 2:
 - The folder `hyperlegible-next/` was not enough to bring every font path under 100 characters, so font files dropped the family name that their folder already gives.
 - Site text moved to `site-text/` and is ignored by Eleventy, so it needs no data file. Raw HTML in it is still reported, and edits to it still rebuild in watch mode.
 - The site passes no `overrides` until it has one, so `themes/chrissteel/` does not exist.
-- The theme's belowcontent region is now a labelled `<section>`, which is a landmark whatever the region holds, with the interface string `additionalContent` in English, French and Arabic. The demo's tables page is back in the full audit.
+- The theme's abovecontent and belowcontent regions are now labelled `<section>` elements, which are landmarks whatever the regions hold, with the interface strings `pageContext` and `additionalContent` in English, French and Arabic. Each has its own label, since axe reports two landmarks with one name on a page. The demo's tables page is back in the full audit.
 
 ## What was made
 
-This repository, on `main`, not pushed: `41bdddc` the sidecar and founding decision, `ed76e09` Katagami 0.5.1 unchanged, `3f4fff2` the site on 0.5.1 with uc-automa's offerings, `87366b4` Katagami 0.6.0, and the commit holding this record, which moves the site onto it.
+This repository, on `main`, pushed: `41bdddc` the sidecar and founding decision, `ed76e09` Katagami 0.5.1 unchanged, `3f4fff2` the site on 0.5.1 with uc-automa's offerings, `87366b4` Katagami 0.6.0, `f23c7bf` the site moved onto it, and `d16723e` abovecontent as a landmark, followed by the update to this record.
 
 Theme commits to carry back to github.com/steelcj/eleventy-theme-katagami:
 
 - Base: `ed76e09`, identical to the theme's `39d9332`.
-- `87366b4`, Katagami 0.6.0. It touches only `themes/katagami/`.
+- `87366b4`, Katagami 0.6.0, and `d16723e`, abovecontent as a labelled landmark. Each touches only `themes/katagami/`, and together they apply cleanly to `39d9332`.
 - Export with `git format-patch ed76e09..HEAD -- themes/katagami`.
 
 The theme's repository also needs what lives outside the folder, which cannot travel in these commits:
@@ -67,10 +67,8 @@ The theme's repository also needs what lives outside the folder, which cannot tr
 ## Left open
 
 - uc-automa 0040 and its change wait for review and a release; until then `uc-automa check` at 0.2.0 reports the names under `vendor/`.
-- The theme's abovecontent region is still a plain `<div>`. Breadcrumbs carry their own landmark, but another part placed there would sit outside one.
 - The process Creating an Eleventy Theme shows an `eleventy.config.js` without `setIncludesDirectory` and `setLayoutsDirectory`, which the theme still needs, and names the theme's licence file `LICENSE.md`.
 - A new decision record for the move to Katagami 0.6.0, once it is tagged.
-- The force-push replacing `62d8d8d` waits for authorization.
 
 ## Changelog
 
