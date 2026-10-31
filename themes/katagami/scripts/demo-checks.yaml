@@ -1,0 +1,63 @@
+# The demo site's src/_data/checks.yaml, kept here until the theme's repository takes it.
+# It lists every fixture check, so that a site without these pages skips them.
+#
+# - `pages` are the URLs for the accessibility audits and the vertical rhythm check. They
+#   include the fixture pages for typography, tables, and the album and tabular views.
+# - `untranslated` lists the pages allowed to have no translation, by their translation
+#   key, or a key's start when it ends in a slash. The demo's fixtures are uneven on purpose.
+# - `fixtureChecks` are expectations for particular pages. Each has a `page`, with strings
+#   it `contains` or `lacks`, or a `region` and the `parts` it must hold.
+pages:
+  - /en/
+  - /en/services/design/
+  - /en/services/archive/
+  - /en/services/
+  - /en/services/workshops/
+  - /en/fixtures/tables/
+  - /fr/
+  - /fr/services/conception/
+  - /fr/fixtures/typographie/
+  - /ar/
+  - /ar/services/design/
+  - /ar/services/software/
+  - /ar/fixtures/typography/
+
+untranslated:
+  - /fixtures/
+  - /services/archive/
+  - /services/design/
+  - /services/editing/
+  - /services/redaction/
+  - /services/software/
+
+fixtureChecks:
+  # A folder, a subfolder and a page adding to one region, in that order.
+  - page: /en/fixtures/nested/regions/
+    region: belowcontent
+    parts: [footer-text, colophon, logo]
+  # Titles are plain text with smart punctuation: no Markdown, no HTML.
+  - page: /en/fixtures/titles/
+    contains:
+      - "<h1>Plain *titles*, “quotes” &amp; &lt;tags&gt;</h1>"
+      - "<title>Plain *titles*, “quotes” &amp; &lt;tags&gt; · Katagami</title>"
+      - '<meta name="description" content="A title with **Markdown** syntax, ‘quotes’ &amp; &lt;tags&gt;, shown as plain text.">'
+      - '<span aria-current="page"><bdi>Plain *titles*, “quotes” &amp; &lt;tags&gt;</bdi></span>'
+    lacks: ["<em>titles</em>", "<strong>Markdown</strong>", "<tags>"]
+  # The typography specimen: French spacing and quotation marks, with code, URLs and times
+  # left alone.
+  - page: /fr/fixtures/typographie/
+    contains:
+      - "Note : le deux-points"
+      - "Vraiment? Oui! Bien sûr; voilà."
+      - "Et sans espace aussi; ça reste ainsi."
+      - "« Guillemets avec espaces » et « guillemets serrés »"
+      - "« Guillemets droits »"
+      - "l’apostrophe"
+      - "Il est 12:45"
+      - '<a href="https://www.11ty.dev/" dir="ltr">https://www.11ty.dev/</a>'
+      - '<code dir="ltr">a ; b : c ?</code>'
+      - '<html lang="fr-CA"'
+    lacks: [" "]
+  - page: /en/
+    contains: ["’", '<html lang="en"']
+    lacks: ["«"]

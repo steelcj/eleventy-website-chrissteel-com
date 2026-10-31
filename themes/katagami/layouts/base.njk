@@ -6,7 +6,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% if title %}{{ title | typeset(langTag) | safe }} · {% endif %}{{ site.name }}</title>
+  <title>{% if title and title != site.name %}{{ title | typeset(langTag) | safe }} · {% endif %}{{ site.name }}</title>
   {%- if description %}
   <meta name="description" content="{{ description | typeset(langTag) | safe }}">
   {%- endif %}
@@ -73,9 +73,9 @@
       {%- endfor %}
     {%- endset %}
     {%- if regionHtml | trim %}
-    <div class="region region--belowcontent">
+    <section class="region region--belowcontent" aria-label="{{ 'additionalContent' | t(lang) }}">
       {{- regionHtml | safe }}
-    </div>
+    </section>
     {%- endif %}
     {%- endblock %}
 

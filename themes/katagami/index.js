@@ -1,6 +1,7 @@
 // Katagami theme plugin: registers the template loader, layout stubs, Markdown,
 // data, filters, linters and asset copies. The site's eleventy.config.js sets
-// the directories, which plugins cannot do, and then adds this plugin.
+// the directories, which plugins cannot do, and then adds this plugin, with the
+// site's overrides folder, if it has one, as the `overrides` option.
 
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -12,6 +13,7 @@ import yaml from "js-yaml";
 import matter from "gray-matter";
 import EleventyNavigation from "@11ty/eleventy-navigation";
 import typography from "./typography.js";
+import { stringsFor } from "./strings.js";
 import { eleventyImageTransformPlugin } from "@11ty/eleventy-img";
 import sharp from "sharp";
 
@@ -20,7 +22,9 @@ const THEME_DIR = path
   .relative(process.cwd(), path.dirname(fileURLToPath(import.meta.url)))
   .split(path.sep)
   .join("/");
-const SITE_DIR = "site";
+// Each language's site text, such as src/en-ca/site-text/footer.md. The theme reads these
+// files itself, so Eleventy never builds them as pages.
+const SITE_TEXT = "site-text";
 
 // Settings Eleventy only accepts as returned or exported configuration.
 // The site's eleventy.config.js re-exports this object.
@@ -183,7 +187,7 @@ function readDataFile(dir, name) {
 // The font sets from theme.yaml, with the one font file each preloads: the body font's
 // regular weight, or on pages in a locale with `fontSet: arabic`, the Arabic companion's.
 function fontSetState({ fontSets, fonts }) {
-  const regular = (name, subset) => `/assets/fonts/${name}/${name}-${subset}-400-normal.woff2`;
+  const regular = (name, subset) => `/assets/vendor/fonts/${fonts[name].folder ?? name}/${subset}-400-normal.woff2`;
   const preload = {};
   for (const [set, { body, arabic }] of Object.entries(fontSets.sets)) {
     preload[set] = { latin: regular(body, fonts[body].subsets[0]), arabic: regular(arabic, "arabic") };
@@ -206,8 +210,12 @@ function translationKey(url, lang, explicitKey) {
   return url && lang && url.startsWith(`/${lang}/`) ? url.slice(lang.length + 1) : undefined;
 }
 
-export default async function katagami(eleventyConfig) {
+export default async function katagami(eleventyConfig, options = {}) {
   const inputDir = eleventyConfig.directories?.input ?? "src";
+  // The site's overrides folder, relative to the repository root. Without the option
+  // there is none, and only the theme's own files are used.
+  const overrides = options.overrides?.replace(/\/+$/, "");
+  if (overrides && !fs.existsSync(overrides)) console.warn(`[katagami] The overrides folder ${overrides} does not exist.`);
   const md = createMarkdown();
 
   // Theme files and per-language site text, read at the start of every build
@@ -224,7 +232,7 @@ export default async function katagami(eleventyConfig) {
     const tagFor = (code) => (Array.isArray(locales) ? locales.find((locale) => locale.code === code)?.tag : undefined) ?? code;
     const siteText = {};
     for (const lang of fs.readdirSync(inputDir)) {
-      const dir = path.join(inputDir, lang, "_site");
+      const dir = path.join(inputDir, lang, SITE_TEXT);
       if (!fs.existsSync(dir)) continue;
       siteText[lang] = {};
       for (const file of fs.readdirSync(dir)) {
@@ -234,6 +242,7 @@ export default async function katagami(eleventyConfig) {
       }
     }
     state = {
+      locales: Array.isArray(locales) ? locales : [],
       name: manifest.title,
       version: manifest.version,
       defaults: { regions: readYaml(`${THEME_DIR}/defaults/regions.yaml`) },
@@ -248,6 +257,28 @@ export default async function katagami(eleventyConfig) {
   }
   eleventyConfig.on("eleventy.before", loadState);
   loadState();
+
+  // A locale with no interface strings of its own reads in English, which is easily missed.
+  eleventyConfig.on("eleventy.before", () => {
+    if (state.production) return;
+    for (const { code, tag } of state.locales) {
+      if (!stringsFor(state.strings, code, tag)) {
+        console.warn(`[katagami] Locale ${code} has no interface strings in ${THEME_DIR}/i18n/, so its pages use English ones.`);
+      }
+    }
+  });
+
+  // Site text is never a page, and its source files are watched and linted here instead.
+  eleventyConfig.ignores.add(path.join(inputDir, "*", SITE_TEXT, "**"));
+  eleventyConfig.on("eleventy.before", () => {
+    for (const lang of fs.readdirSync(inputDir)) {
+      const dir = path.join(inputDir, lang, SITE_TEXT);
+      if (!fs.existsSync(dir)) continue;
+      for (const file of fs.readdirSync(dir)) {
+        if (file.endsWith(".md")) warnRawHtml(path.join(dir, file), fs.readFileSync(path.join(dir, file), "utf8"));
+      }
+    }
+  });
 
   // Eleventy merges folder and page data before templates see it, and combines lists
   // on the way, so regionOverrides are read layer by layer from the files instead.
@@ -279,7 +310,7 @@ export default async function katagami(eleventyConfig) {
     const locales = readYaml(path.join(dataDir, "locales.yaml"));
     const codes = Array.isArray(locales) ? locales.map((locale) => locale.code) : [];
     const walk = (dir) => {
-      const entries = fs.readdirSync(dir, { withFileTypes: true }).filter((entry) => !/^[_.]/.test(entry.name));
+      const entries = fs.readdirSync(dir, { withFileTypes: true }).filter((entry) => !/^[_.]/.test(entry.name) && entry.name !== SITE_TEXT);
       const pages = entries.filter((entry) => entry.isFile() && entry.name.endsWith(".md"));
       if (pages.length && !pages.some((entry) => entry.name === "index.md")) {
         console.warn(`[katagami] ${dir} has pages but no index.md, so they attach to the folder above it.`);
@@ -291,15 +322,14 @@ export default async function katagami(eleventyConfig) {
     }
   });
 
-  // Templates: site/ shadows themes/katagami/, with caching off for watch mode.
-  eleventyConfig.setLibrary(
-    "njk",
-    new Nunjucks.Environment(new Nunjucks.FileSystemLoader([SITE_DIR, THEME_DIR], { noCache: true })),
-  );
+  // Templates: the overrides folder shadows the theme, with caching off for watch mode.
+  const templateDirs = overrides ? [overrides, THEME_DIR] : [THEME_DIR];
+  eleventyConfig.setLibrary("njk", new Nunjucks.Environment(new Nunjucks.FileSystemLoader(templateDirs, { noCache: true })));
+  for (const dir of templateDirs) eleventyConfig.addWatchTarget(`${dir}/`);
   // A stub for each layout the theme ships, and for each layout only the site has.
   const layoutFiles = new Set(fs.readdirSync(`${THEME_DIR}/layouts`));
-  if (fs.existsSync(`${SITE_DIR}/layouts`)) {
-    for (const file of fs.readdirSync(`${SITE_DIR}/layouts`)) layoutFiles.add(file);
+  if (overrides && fs.existsSync(`${overrides}/layouts`)) {
+    for (const file of fs.readdirSync(`${overrides}/layouts`)) layoutFiles.add(file);
   }
   for (const file of layoutFiles) {
     if (file.endsWith(".njk")) {
@@ -309,7 +339,6 @@ export default async function katagami(eleventyConfig) {
 
   // Markdown: raw HTML escaped, URLs and code kept left-to-right.
   eleventyConfig.setLibrary("md", md);
-  // Linters also run on site text, which is rendered although never written.
   eleventyConfig.addLinter("katagami-raw-html", function () {
     const inputPath = this.page?.inputPath;
     if (inputPath?.endsWith(".md") && fs.existsSync(inputPath)) {
@@ -345,7 +374,8 @@ export default async function katagami(eleventyConfig) {
 
   // Filters.
   eleventyConfig.addFilter("t", (key, lang) => {
-    const text = state.strings[lang]?.[key] ?? state.strings.en?.[key];
+    const tag = state.locales.find((locale) => locale.code === lang)?.tag;
+    const text = stringsFor(state.strings, lang, tag)?.[key] ?? state.strings.en?.[key];
     if (text === undefined) throw new Error(`[katagami] Missing interface string "${key}" in i18n/en.yaml`);
     return text;
   });
@@ -383,7 +413,7 @@ export default async function katagami(eleventyConfig) {
     const known =
       typeof name === "string" &&
       /^[a-z][a-z0-9-]*$/.test(name) &&
-      [SITE_DIR, THEME_DIR].some((dir) => fs.existsSync(path.join(dir, kind, `${name}.njk`)));
+      templateDirs.some((dir) => fs.existsSync(path.join(dir, kind, `${name}.njk`)));
     if (known) return `${kind}/${name}.njk`;
     const message = `[katagami] Unknown ${label} "${name}" in ${inputPath}`;
     if (state.production) {
@@ -552,14 +582,17 @@ export default async function katagami(eleventyConfig) {
   // Assets and passthrough folders. Raster images in media/ are published only as
   // processed files.
   eleventyConfig.addPassthroughCopy({ [`${THEME_DIR}/assets`]: "assets" }, { filter: ["**/*", "!**/README.md"] });
-  // The theme's own messages for the preferences panel sit beside Infusion's. Infusion
-  // also asks for each file's English variant, such as fontSet_en.json, so the English
-  // files are published under both names.
-  eleventyConfig.addPassthroughCopy({ [`${THEME_DIR}/i18n/preferences`]: "assets/vendor/infusion/messages" });
-  for (const file of fs.readdirSync(`${THEME_DIR}/i18n/preferences`)) {
+  // The theme's own messages for the preferences panel are published beside Infusion's.
+  // They keep the file names Infusion's loader asks for, such as contrast_fr.json, and are
+  // kept apart because npm run vendor-infusion replaces Infusion's folder. Infusion also
+  // asks for each file's English variant, such as fontSet_en.json, so the English files
+  // are published under both names.
+  const messages = `${THEME_DIR}/i18n/vendor/infusion-messages`;
+  eleventyConfig.addPassthroughCopy({ [messages]: "assets/vendor/infusion/messages" });
+  for (const file of fs.readdirSync(messages)) {
     if (/^[a-zA-Z]+\.json$/.test(file)) {
       eleventyConfig.addPassthroughCopy({
-        [`${THEME_DIR}/i18n/preferences/${file}`]: `assets/vendor/infusion/messages/${file.replace(".json", "_en.json")}`,
+        [`${messages}/${file}`]: `assets/vendor/infusion/messages/${file.replace(".json", "_en.json")}`,
       });
     }
   }
@@ -567,11 +600,16 @@ export default async function katagami(eleventyConfig) {
     filter: ["**/*", "!**/*.{jpg,jpeg,png,webp,avif,tif,tiff}"],
   });
 
-  // site/index.js, when present, extends the theme as site/ files shadow it, so that
-  // site-only build code stays out of eleventy.config.js.
-  const sitePlugin = path.resolve(SITE_DIR, "index.js");
-  if (fs.existsSync(sitePlugin)) {
-    const { default: plugin } = await import(pathToFileURL(sitePlugin).href);
+  // The site's directories, for the theme's check scripts, which run outside Eleventy.
+  eleventyConfig.on("eleventy.after", ({ directories }) => {
+    fs.mkdirSync(".cache/katagami", { recursive: true });
+    fs.writeFileSync(".cache/katagami/directories.json", `${JSON.stringify(directories, null, 2)}\n`);
+  });
+
+  // index.js in the overrides folder, when present, extends the theme as the folder's other
+  // files shadow it, so that site-only build code stays out of eleventy.config.js.
+  if (overrides && fs.existsSync(path.join(overrides, "index.js"))) {
+    const { default: plugin } = await import(pathToFileURL(path.resolve(overrides, "index.js")).href);
     await eleventyConfig.addPlugin(plugin);
   }
 }

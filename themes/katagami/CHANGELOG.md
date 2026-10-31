@@ -2,6 +2,50 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-31
+
+The theme is now self-contained: everything a site needs lives in this folder, so a site built on it holds only what uc-automa's `eleventy-site` layout describes. This release breaks every site built on 0.5; see Upgrading from 0.5.
+
+### Added
+
+- The `overrides` plugin option, a path relative to the repository root. The Nunjucks loader, the layout stubs, the watch targets and the optional `index.js` follow it. Without it, the theme uses no overrides folder.
+- `strings.js`: interface strings are found by a locale's code, then its tag, then its primary language subtag, and a locale with none warns in development.
+- The checks' data file, `checks.yaml` in the site's data directory: `pages`, and the optional `untranslated` and `fixtureChecks`. `scripts/site.mjs` reads it, and `scripts/demo-checks.yaml` is the demo site's copy, with every fixture check.
+- Checks on every site: every page has a translation in each other locale and the reverse, no two pages in a locale share a `translationKey`, the language switcher's links match the translations, every page has a footer and a colophon, and every page listed in `checks.yaml` was built.
+
+### Changed
+
+- The theme's tools moved to `scripts/` in this folder: vendoring, fixture images and both checks. The vendoring scripts find the theme from their own location, not the working directory.
+- The checks name no page. They read the pages to test from `checks.yaml`, and the site's directories and locales from the site, and choose the locales they exercise by what each is for: the default, another left-to-right one and a right-to-left one. Expected interface text comes from the theme's own strings.
+- Site text moved from `src/{lang}/_site/` to `src/{lang}/site-text/`. Eleventy no longer sees these files, so they need no data file, and raw HTML in them is still reported.
+- Fonts moved from `assets/fonts/` to `assets/vendor/fonts/`, and the theme's messages for the preferences panel from `i18n/preferences/` to `i18n/vendor/infusion-messages/`, so that vendored names sit under `vendor/`. Their published URLs for messages are unchanged; fonts are now at `/assets/vendor/fonts/`.
+- Font files are named `<subset>-<weight>-normal.woff2`, in a folder that already names the font, and Atkinson Hyperlegible Next's folder is `hyperlegible-next/`, set with `folder` in `theme.yaml`. Every path in the theme is under 100 characters.
+- The stylelint configuration moved to `stylelint.json` in this folder, with the vendored files in its `ignoreFiles`.
+- `LICENSE.md` is now `LICENSE`.
+
+### Fixed
+
+- A locale with a full language code, such as `fr-ca`, fell back to English interface strings, so French pages said "Skip to content".
+- The hreflang check skipped locale codes with anything but lowercase letters, so links to `en-ca` and `fr-ca` were never checked. It now accepts any BCP 47 tag.
+- The page title repeated the site name when a page's title equals it, as on a home page titled with the site's name. The title now appears alone.
+- A locale listed without a folder is reported by the checks, rather than crashing them.
+- The belowcontent region sat outside any landmark, which axe reports as `region`. It is now a labelled `<section>`, with the new interface string `additionalContent`.
+
+### Advice for sites
+
+- Anchor the build output in `.gitignore` as `/_site/`. Written as `_site/`, it also ignored `src/{lang}/_site/`, so no site's footer or colophon was ever committed. The move to `site-text/` removes the clash, and the anchored form is still the right one.
+
+### Upgrading from 0.5
+
+1. Replace `themes/katagami/` with this release.
+2. Move `site/` to `themes/<site>/` and pass it as `overrides: "themes/<site>"`. A site with no overrides passes nothing. Remove the `addWatchTarget` lines for `site/` and the theme from `eleventy.config.js`; the theme adds them.
+3. Point `package.json`'s scripts at `themes/katagami/scripts/`, remove the root `scripts/`, add the `stylelint` key that extends `./themes/katagami/stylelint.json`, take `site/**/*.css` out of the `lint` script, and remove `.stylelintrc.json`, `.stylelintignore` and `.nvmrc`.
+4. Add `checks.yaml` to the site's data directory, and add `.cache/` to `.gitignore` if it is not there.
+5. Rename `src/{lang}/_site/` to `src/{lang}/site-text/` and delete `_site.11tydata.yaml` from each.
+6. Update any reference to `/assets/fonts/` or to font file names, such as a `preload` in an override.
+7. Drop any workaround for the defects fixed here, such as a `t` filter wrapped in the overrides folder's `index.js`.
+8. Rebuild and run `npm run check` and `npm run check:browser`.
+
 ## [0.5.1] - 2026-10-29
 
 ### Fixed
