@@ -1,0 +1,211 @@
+// Checks the built pages in _site/ against the theme's markup rules, a few pages against
+// their expected output, and that every page has its translations. Run after a build:
+// npm run build && npm run check.
+
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import matter from "gray-matter";
+import yaml from "js-yaml";
+import { frenchSpacing } from "../themes/katagami/typography.js";
+
+const outputDir = process.argv[2] ?? "_site";
+
+// Pages that must contain, or must not contain, these strings.
+const NBSP = "\u00A0";
+const NNBSP = "\u202F";
+const textExpectations = [
+  {
+    // French spacing and quotation marks, with code, URLs and times left alone. The
+    // placeholder text holds these on purpose: keep them in, or re-point this, when real
+    // content replaces it.
+    page: "fr-ca/articles/le-texte-brut-dure/index.html",
+    contains: [
+      `Note${NBSP}: un fichier`,
+      "dans cinquante ans? Les plus anciens s’ouvrent aujourd’hui sans difficulté; rien n’indique que cela va changer! Une",
+      `«${NBSP}simples${NBSP}»`,
+      "n’a pas",
+      "à 12:45",
+      '<a href="https://www.11ty.dev/" dir="ltr">https://www.11ty.dev/</a>',
+      '<code dir="ltr">a ; b : c ?</code>',
+      '<html lang="fr-CA"',
+    ],
+    lacks: [NNBSP],
+  },
+  {
+    // Text typed without a space before punctuation stays that way.
+    page: "fr-ca/articles/vos-mots-vous-appartiennent/index.html",
+    contains: ["du jour au lendemain; un dossier"],
+    lacks: [NNBSP],
+  },
+  {
+    // Interface strings follow the language, through the `t` filter in site/index.js.
+    page: "fr-ca/index.html",
+    contains: ["Aller au contenu", 'aria-label="Navigation principale"', "Préférences d’affichage"],
+    lacks: ["Skip to content", "Main navigation"],
+  },
+  {
+    page: "en-ca/index.html",
+    contains: ["’", '<html lang="en-CA"', "Skip to content"],
+    lacks: ["«"],
+  },
+];
+
+// France's conventions, which no locale here uses, checked on the function itself.
+const franceExpectations = [
+  ["Vraiment ? Oui ! Bien sûr ; voilà.", `Vraiment${NNBSP}? Oui${NNBSP}! Bien sûr${NNBSP}; voilà.`],
+  ["Note: texte", `Note${NBSP}: texte`],
+  ["«mot»", `«${NBSP}mot${NBSP}»`],
+  ["12:45 et a?b", "12:45 et a?b"],
+];
+
+// Each locale's full language tag, such as fr-CA, by its code.
+const locales = yaml.load(fs.readFileSync("src/_data/locales.yaml", "utf8"));
+const tags = Object.fromEntries(locales.map((locale) => [locale.code, locale.tag ?? locale.code]));
+
+// Hashes of the inline scripts allowed by a future Content Security Policy.
+const cspFile = path.join(outputDir, "assets/csp.json");
+const cspHashes = fs.existsSync(cspFile) ? JSON.parse(fs.readFileSync(cspFile, "utf8"))["script-src"] : [];
+
+// Pages only: assets/ holds HTML fragments, such as Infusion's panel templates.
+function htmlFiles(dir) {
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const file = path.join(dir, entry.name);
+    if (entry.isDirectory()) return file === path.join(outputDir, "assets") ? [] : htmlFiles(file);
+    return file.endsWith(".html") ? [file] : [];
+  });
+}
+
+const problems = [];
+const files = htmlFiles(outputDir);
+
+for (const file of files) {
+  const html = fs.readFileSync(file, "utf8");
+  const report = (message) => problems.push(`${path.relative(outputDir, file)}: ${message}`);
+
+  // Every page states its language and direction.
+  if (!/<html lang="[a-z]{2,3}(-[A-Za-z0-9]+)*" dir="(ltr|rtl)">/.test(html)) report("<html> without lang and dir");
+
+  // Pages in a language folder carry their locale's full tag, and links name languages by
+  // their full tags too.
+  const code = path.relative(outputDir, file).split(path.sep)[0];
+  if (tags[code] && !html.includes(`<html lang="${tags[code]}"`)) report(`lang is not ${tags[code]}`);
+  for (const [, hreflang] of html.matchAll(/hreflang="([^"]*)"/g)) {
+    if (!Object.values(tags).includes(hreflang)) report(`hreflang="${hreflang}" is not a locale's full tag`);
+  }
+  for (const [, target, hreflang] of html.matchAll(/href="\/([a-z-]+)\/[^"]*"[^>]*hreflang="([^"]*)"/g)) {
+    if (tags[target] && hreflang !== tags[target]) report(`link to /${target}/ has hreflang="${hreflang}", expected ${tags[target]}`);
+  }
+
+  // Pages in a language folder carry that language's footer and colophon.
+  if (tags[code] && !html.includes('class="footer-text"')) report("no footer text");
+  if (tags[code] && !html.includes('class="colophon"')) report("no colophon");
+
+  // Every page loads one font set and preloads exactly one font file, which must exist.
+  if (!/<link rel="stylesheet" href="\/assets\/css\/fonts\/[a-z-]+\.css" id="font-set"[^>]*>/.test(html)) report("no font set stylesheet");
+
+  // The only inline script is the preferences script, whose hash is in assets/csp.json.
+  const inline = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
+  if (inline.length !== 1) report(`${inline.length} inline scripts, expected 1`);
+  for (const script of inline) {
+    const hash = `'sha256-${crypto.createHash("sha256").update(script).digest("base64")}'`;
+    if (!cspHashes.includes(hash)) report(`inline script ${hash} is not in assets/csp.json`);
+  }
+  const preloads = [...html.matchAll(/<link rel="preload" href="([^"]+)" as="font"/g)].map((match) => match[1]);
+  if (preloads.length !== 1) report(`${preloads.length} font preloads, expected 1`);
+  for (const href of preloads) {
+    if (!fs.existsSync(path.join(outputDir, href))) report(`preloaded font ${href} does not exist`);
+  }
+
+  // Each <nav> has its own label.
+  const labels = [...html.matchAll(/<nav\b([^>]*)>/g)].map((match) => match[1].match(/aria-label="([^"]*)"/)?.[1]);
+  if (labels.some((label) => !label)) report("<nav> without aria-label");
+  if (new Set(labels).size !== labels.length) report(`<nav> labels repeated: ${labels.join(", ")}`);
+
+  // Breadcrumbs: an ordered list, the last item current, the separator in CSS only.
+  const crumbs = html.match(/<nav class="breadcrumbs"[\s\S]*?<\/nav>/)?.[0];
+  if (crumbs) {
+    const items = crumbs.match(/<li>[\s\S]*?<\/li>/g) ?? [];
+    if (!crumbs.includes("<ol>")) report("breadcrumbs are not an ordered list");
+    if (!items.at(-1)?.includes('aria-current="page"') || items.slice(0, -1).some((item) => item.includes("aria-current"))) {
+      report("breadcrumbs: only the last item should be current");
+    }
+    if (/<svg|[›»]/.test(crumbs)) report("breadcrumb separator in markup");
+  }
+
+  // Section navigation and main menu: at most one current item each.
+  const sectionNav = html.match(/<nav class="section-nav"[\s\S]*?<\/nav>/)?.[0];
+  if ((sectionNav?.match(/aria-current="page"/g) ?? []).length > 1) report("section navigation has more than one current page");
+  const mainNav = html.match(/<nav class="main-nav"[\s\S]*?<\/nav>/)?.[0];
+  if ((mainNav?.match(/aria-current/g) ?? []).length > 1) report("main menu has more than one current item");
+
+  // Images: alt text and dimensions on every image, and at most one loaded eagerly.
+  const images = html.match(/<img\b[^>]*>/g) ?? [];
+  if (images.some((img) => !/ alt="/.test(img))) report("<img> without alt");
+  if (images.some((img) => !/ width="/.test(img) || !/ height="/.test(img))) report("<img> without width and height");
+  if (images.filter((img) => img.includes('loading="eager"')).length > 1) report("more than one eager image");
+
+  // No inline styles: presentation comes from the theme's CSS, in logical terms.
+  if (/\sstyle="/.test(html)) report("inline style attribute");
+
+  // No empty regions.
+  if (/<(aside|div|header|footer) class="region[^"]*">\s*<\/\1>/.test(html)) report("empty region");
+
+  // No unknown blocks or views, and no raw HTML left unescaped from content.
+  if (html.includes("block--unknown")) report("unknown block or view placeholder");
+}
+
+for (const { page, contains = [], lacks = [] } of textExpectations) {
+  const file = path.join(outputDir, page);
+  if (!fs.existsSync(file)) {
+    problems.push(`${page}: page missing`);
+    continue;
+  }
+  const html = fs.readFileSync(file, "utf8");
+  const show = (text) => JSON.stringify(text).replace(/\\u00a0/gi, "⍽").replace(/\\u202f/gi, "·");
+  for (const text of contains) if (!html.includes(text)) problems.push(`${page}: missing ${show(text)}`);
+  for (const text of lacks) if (html.includes(text)) problems.push(`${page}: should not contain ${show(text)}`);
+}
+
+for (const [input, expected] of franceExpectations) {
+  const output = frenchSpacing(input, "france");
+  if (output !== expected) problems.push(`French spacing (France) of ${JSON.stringify(input)} gave ${JSON.stringify(output)}`);
+}
+
+// Every page has a translation in every language, in both directions. Pages are translations
+// when they share a key: `translationKey` in front matter, or by default the URL without its
+// language prefix, as in the theme. The built language switcher must link to each one.
+const translations = new Map();
+for (const { code } of locales) {
+  for (const file of fs.readdirSync(path.join("src", code), { recursive: true })) {
+    if (!file.endsWith(".md") || file.split(path.sep).includes("_site")) continue;
+    const slug = file.replace(/\.md$/, "/").replace(/(^|\/)index\/$/, "$1");
+    const url = `/${code}/${slug}`;
+    const key = matter(fs.readFileSync(path.join("src", code, file), "utf8")).data.translationKey ?? `/${slug}`;
+    if (!translations.has(key)) translations.set(key, {});
+    if (translations.get(key)[code]) problems.push(`${url}: same translation key as ${translations.get(key)[code]}`);
+    translations.get(key)[code] = url;
+  }
+}
+for (const [key, urls] of translations) {
+  for (const { code } of locales) {
+    if (!urls[code]) problems.push(`${key}: no ${code} page, but it is in ${Object.keys(urls).join(", ")}`);
+  }
+  for (const url of Object.values(urls)) {
+    const file = path.join(outputDir, url, "index.html");
+    if (!fs.existsSync(file)) {
+      problems.push(`${url}: page missing`);
+      continue;
+    }
+    const switcher = fs.readFileSync(file, "utf8").match(/<nav class="language-switcher"[\s\S]*?<\/nav>/)?.[0] ?? "";
+    // A production build leaves fixture locales out of the switcher.
+    for (const [, href, tag] of switcher.matchAll(/<a href="([^"]*)" lang="([^"]*)"/g)) {
+      const code = locales.find((locale) => tags[locale.code] === tag)?.code;
+      if (urls[code] && href !== urls[code]) problems.push(`${url}: switcher links ${tag} to ${href}, expected ${urls[code]}`);
+    }
+  }
+}
+
+for (const problem of problems) console.log(problem);
+console.log(`${files.length} pages checked, ${translations.size} pages translated, ${problems.length} problems`);
+process.exitCode = problems.length ? 1 : 0;

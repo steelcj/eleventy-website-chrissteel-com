@@ -1,0 +1,10 @@
+- label: الرئيسية
+  url: /ar/
+- label: مقالات
+  url: /ar/articles/
+- label: مشاريع
+  url: /ar/projects/
+- label: تعاون
+  url: /ar/collaboration/
+- label: نبذة
+  url: /ar/about/

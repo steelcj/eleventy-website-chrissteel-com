@@ -1,0 +1,3 @@
+# Site text is placed into regions by the theme, and never published as pages.
+permalink: false
+eleventyExcludeFromCollections: true

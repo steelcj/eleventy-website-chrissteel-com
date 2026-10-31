@@ -1,0 +1,102 @@
+version = 1
+
+[[annotations]]
+path = ["lib/**", "tests/**", "schemas/**", "conf/**", "pyproject.toml", "VERSION", "manager.yaml", ".uc-automa.yaml", ".uc-portage-state.yaml", ".*.assets/**", ".gitattributes", ".editorconfig", ".gitignore", ".pre-commit-config.yaml"]
+SPDX-FileCopyrightText = "Christopher Steel"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["en-ca/**", "README.md", "CHANGELOG.md", "ROADMAP.md", "CONTRIBUTING.md", "CLAUDE.md"]
+SPDX-FileCopyrightText = "Christopher Steel"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["eleventy.config.js", "package.json", "package-lock.json", "src/**", "themes/**"]
+SPDX-FileCopyrightText = "Christopher Steel"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["src/**/*.md"]
+SPDX-FileCopyrightText = "Christopher Steel"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["src/media/**"]
+SPDX-FileCopyrightText = "2026 Vishpala"
+SPDX-License-Identifier = "CC-BY-4.0"
+
+[[annotations]]
+path = ["themes/katagami/**"]
+SPDX-FileCopyrightText = "2026 Vishpala"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["themes/katagami/assets/fonts/atkinson-hyperlegible-next/**"]
+SPDX-FileCopyrightText = "2020-2024 The Atkinson Hyperlegible Next Project Authors (https://github.com/googlefonts/atkinson-hyperlegible-next)"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["themes/katagami/assets/fonts/ibm-plex-sans-arabic/**"]
+SPDX-FileCopyrightText = "2019 IBM Corp. All rights reserved."
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["themes/katagami/assets/fonts/noto-naskh-arabic/**"]
+SPDX-FileCopyrightText = "2022 The Noto Project Authors (https://github.com/notofonts/arabic)"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["themes/katagami/assets/fonts/shippori-mincho/**"]
+SPDX-FileCopyrightText = "2021 The Shippori Mincho Project Authors (https://github.com/fontdasu/ShipporiMincho)"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["themes/katagami/assets/fonts/zen-kaku-gothic-new/**"]
+SPDX-FileCopyrightText = "2022 The Zen Project Authors (https://github.com/googlefonts/zen-kakugothic)"
+SPDX-License-Identifier = "OFL-1.1"
+
+[[annotations]]
+path = ["themes/katagami/assets/vendor/infusion/**"]
+SPDX-FileCopyrightText = [
+  "2007-2024 Dinuka De Silva",
+  "2007-2024 Lucendo Development Ltd.",
+  "2007-2024 OCAD University",
+  "2007-2024 Raising the Floor - International",
+  "2007-2024 Raising the Floor - US",
+  "2007-2024 University of California, Berkeley",
+  "2007-2024 University of Cambridge",
+  "2007-2024 University of Toronto",
+]
+SPDX-License-Identifier = "BSD-3-Clause OR ECL-2.0"
+
+[[annotations]]
+path = ["themes/katagami/assets/vendor/infusion/infusion-uio.js"]
+SPDX-FileCopyrightText = [
+  "2007-2024 Dinuka De Silva",
+  "2007-2024 Lucendo Development Ltd.",
+  "2007-2024 OCAD University",
+  "2007-2024 Raising the Floor - International",
+  "2007-2024 Raising the Floor - US",
+  "2007-2024 University of California, Berkeley",
+  "2007-2024 University of Cambridge",
+  "2007-2024 University of Toronto",
+  "OpenJS Foundation and other contributors",
+  "2011 unscriptable.com / John Hann",
+  "2000 - 2002, 2003 Michael Houghton (mike@idle.org), Raymond Irving and David Joham (djoham@yahoo.com)",
+]
+SPDX-License-Identifier = "(BSD-3-Clause OR ECL-2.0) AND MIT AND Zlib"
+
+[[annotations]]
+path = ["themes/katagami/assets/vendor/infusion/licenses/jQuery-LICENSE.txt"]
+SPDX-FileCopyrightText = "OpenJS Foundation and other contributors"
+SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["themes/katagami/assets/vendor/infusion/licenses/fastXmlPull-LICENSE.txt"]
+SPDX-FileCopyrightText = "2000 - 2002, 2003 Michael Houghton (mike@idle.org), Raymond Irving and David Joham (djoham@yahoo.com)"
+SPDX-License-Identifier = "Zlib"
+
+[[annotations]]
+path = ["themes/katagami/assets/vendor/infusion/README.md"]
+SPDX-FileCopyrightText = "2026 Vishpala"
+SPDX-License-Identifier = "MIT"

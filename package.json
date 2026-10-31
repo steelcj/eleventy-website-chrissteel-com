@@ -1,0 +1,39 @@
+{
+  "name": "eleventy-website-chrissteel-com",
+  "version": "0.1.0",
+  "description": "chrissteel.com, the personal website of Christopher Steel, built on the Katagami theme.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "author": "Christopher Steel",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "eleventy",
+    "build:production": "ELEVENTY_ENV=production eleventy",
+    "start": "eleventy --serve --watch",
+    "lint": "stylelint --allow-empty-input \"themes/**/*.css\" \"site/**/*.css\"",
+    "check": "node scripts/check-pages.mjs",
+    "fixture-images": "node scripts/make-fixture-images.mjs src/media",
+    "vendor-fonts": "node scripts/vendor-fonts.mjs",
+    "check:browser": "node scripts/check-browser.mjs",
+    "vendor-infusion": "node scripts/vendor-infusion.mjs"
+  },
+  "dependencies": {
+    "@11ty/eleventy": "^3.1.7",
+    "@11ty/eleventy-img": "^7.1.1",
+    "@11ty/eleventy-navigation": "^1.0.5",
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.3.2",
+    "markdown-it": "^14.3.3",
+    "nunjucks": "npm:@11ty/nunjucks@^3.3.0",
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "axe-core": "4.14.0",
+    "playwright": "1.64.1",
+    "stylelint": "^17.16.0",
+    "stylelint-config-recommended": "^18.0.0"
+  }
+}

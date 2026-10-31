@@ -1,0 +1,10 @@
+- label: Accueil
+  url: /fr-ca/
+- label: Articles
+  url: /fr-ca/articles/
+- label: Projets
+  url: /fr-ca/projects/
+- label: Collaboration
+  url: /fr-ca/collaboration/
+- label: À propos
+  url: /fr-ca/about/
