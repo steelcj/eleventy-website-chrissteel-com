@@ -6,6 +6,7 @@ home: الرئيسية
 siteActions: إجراءات الموقع
 inThisSection: في هذا القسم
 additionalContent: محتوى إضافي
+pageContext: سياق الصفحة
 theme: القالب
 sectionNavigation: تنقل القسم
 unknownBlock: نوع كتلة غير معروف

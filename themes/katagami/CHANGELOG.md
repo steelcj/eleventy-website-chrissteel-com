@@ -29,7 +29,7 @@ The theme is now self-contained: everything a site needs lives in this folder, s
 - The hreflang check skipped locale codes with anything but lowercase letters, so links to `en-ca` and `fr-ca` were never checked. It now accepts any BCP 47 tag.
 - The page title repeated the site name when a page's title equals it, as on a home page titled with the site's name. The title now appears alone.
 - A locale listed without a folder is reported by the checks, rather than crashing them.
-- The belowcontent region sat outside any landmark, which axe reports as `region`. It is now a labelled `<section>`, with the new interface string `additionalContent`.
+- The abovecontent and belowcontent regions sat outside any landmark, which axe reports as `region` for anything but navigation placed in them. Each is now a labelled `<section>`, with the new interface strings `pageContext` and `additionalContent`.
 
 ### Advice for sites
 

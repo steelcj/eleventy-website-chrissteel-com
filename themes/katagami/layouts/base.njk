@@ -43,9 +43,9 @@
       {%- endfor %}
     {%- endset %}
     {%- if regionHtml | trim %}
-    <div class="region region--abovecontent">
+    <section class="region region--abovecontent" aria-label="{{ 'pageContext' | t(lang) }}">
       {{- regionHtml | safe }}
-    </div>
+    </section>
     {%- endif %}
     {%- endblock %}
 
