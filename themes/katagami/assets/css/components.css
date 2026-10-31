@@ -1,0 +1,571 @@
+/* Regions and parts. */
+.region--header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs) var(--space-m);
+  padding-block: var(--space-m);
+  border-block-end: var(--rule-width) solid var(--color-rule);
+}
+
+.region--abovecontent {
+  padding-block-start: var(--space-s);
+}
+
+.region--content {
+  padding-block: var(--space-l);
+}
+
+/* Text keeps a readable measure; grids, tables and albums use the full column. */
+.region--content :where(h1, h2, h3, h4, p, ul, ol, blockquote) {
+  max-inline-size: var(--measure);
+}
+
+.region--content:focus {
+  outline: none;
+}
+
+.region--footer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-m);
+  padding-block: var(--space-l);
+  border-block-start: var(--rule-width) solid var(--color-rule);
+  color: var(--color-text-muted);
+  font-size: var(--step--1);
+}
+
+.region--footer :where(p:last-child) {
+  margin-block-end: 0;
+}
+
+/* Lists of links in a row. */
+.main-nav ul,
+.language-switcher ul,
+.breadcrumbs ol,
+.site-actions ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-s);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[aria-current] {
+  text-decoration-color: var(--color-accent);
+  text-decoration-thickness: 2px;
+}
+
+/* Skip link: hidden until focused. */
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--space-xs);
+  inset-inline-start: var(--space-xs);
+  padding: var(--space-xs) var(--space-s);
+  background-color: var(--color-background);
+}
+
+.skip-link:not(:focus) {
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.logo {
+  color: var(--color-text);
+  font-family: var(--font-heading);
+  font-size: var(--step-1);
+  font-weight: 700;
+  text-decoration: none;
+  margin-inline-end: auto;
+}
+
+.language-switcher {
+  font-size: var(--step--1);
+}
+
+/* Language names are set in system fonts, so a page never downloads a web font just
+   to show another language's name. */
+.language-switcher a,
+.language-list a {
+  font-family: var(--font-system);
+}
+
+.breadcrumbs {
+  font-size: var(--step--1);
+  color: var(--color-text-muted);
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-s);
+}
+
+/* The separator is an empty pseudo-element, so screen readers do not announce it.
+   It is a directional icon: it points the way of reading and mirrors in right-to-left
+   pages. Logos, the kamon, checkmarks and media controls never mirror. */
+.breadcrumbs li + li::before {
+  content: "";
+  inline-size: var(--icon-size);
+  block-size: var(--icon-size);
+  flex: none;
+  background-color: currentColor;
+  mask: var(--icon-chevron) center / contain no-repeat;
+}
+
+.breadcrumbs li + li:dir(rtl)::before {
+  scale: -1 1;
+}
+
+.lead {
+  font-size: var(--step-1);
+  line-height: calc(var(--baseline) * 5);
+  color: var(--color-text-muted);
+}
+
+/* The language chooser at the site root. */
+.language-list ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-s) var(--space-l);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--step-1);
+}
+
+/* Section navigation: the current section, opened down to the current page. */
+.region--sidebar {
+  padding-block: var(--space-l);
+  font-size: var(--step--1);
+}
+
+.section-nav__title {
+  margin-block-end: var(--space-xs);
+  font-weight: 700;
+}
+
+.section-nav ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.section-nav ul ul {
+  padding-inline-start: var(--space-s);
+}
+
+.section-nav li {
+  padding-block: var(--space-2xs);
+}
+
+.section-nav a[aria-current="page"] {
+  padding-inline-start: var(--space-xs);
+  border-inline-start: 2px solid var(--color-accent);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+/* Blocks, two lines apart. */
+.block {
+  margin-block: calc(var(--line) * 2);
+}
+
+.block > :where(:first-child) {
+  margin-block-start: 0;
+}
+
+.block > :where(:last-child) {
+  margin-block-end: 0;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: calc(var(--baseline) * 4) var(--space-m);
+}
+
+.grid > .block {
+  margin-block: 0;
+}
+
+@media (min-width: 48rem) {
+  .grid--columns-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid--columns-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .grid--columns-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* An image in the text flow keeps its proportions, from its ratio class, with its height
+   rounded up to a whole baseline (the image is cropped by under a baseline), so the text
+   after it returns to the grid. Images in Markdown paragraphs are treated the same way. */
+:where(.lead-image, .block--image, p) > picture {
+  display: block;
+  container-type: inline-size;
+}
+
+:where(.lead-image, .block--image, p) > picture img {
+  display: block;
+  inline-size: 100%;
+  block-size: round(up, calc(100cqi * var(--image-ratio)), var(--baseline));
+  object-fit: cover;
+}
+
+/* Cards, for teasers and album items. A card is one link: its title link stretches
+   over the whole card. Its rule is an outline, which takes no space, so the card is a
+   whole number of baselines tall. */
+.card {
+  position: relative;
+  padding-block: calc(var(--baseline) * 4);
+  padding-inline: var(--space-m);
+  outline: var(--rule-width) solid var(--color-rule);
+  outline-offset: calc(-1 * var(--rule-width));
+  background-color: var(--color-surface);
+}
+
+.card:hover {
+  outline-color: var(--color-accent);
+}
+
+.card:has(a:focus-visible) {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* The card's image runs to the card's edges, cropped to about 3:2 and rounded up to a
+   whole number of baselines. */
+.card picture {
+  display: block;
+  container-type: inline-size;
+  margin-block: calc(-4 * var(--baseline)) calc(var(--baseline) * 3);
+  margin-inline: calc(-1 * var(--space-m));
+}
+
+.card img {
+  display: block;
+  inline-size: 100%;
+  block-size: round(up, calc(100cqi * 2 / 3), var(--baseline));
+  object-fit: cover;
+}
+
+.card__title {
+  font-size: var(--step-1);
+  margin-block: 0 var(--baseline);
+}
+
+.card__title a {
+  text-decoration: none;
+}
+
+.card__title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.card__title a:focus-visible {
+  outline: none;
+}
+
+.card p {
+  margin-block-end: 0;
+  color: var(--color-text-muted);
+}
+
+.block--call-to-action {
+  padding-block: calc(var(--baseline) * 4);
+  padding-inline: var(--space-l);
+  border-inline-start: 4px solid var(--color-accent);
+  background-color: var(--color-surface);
+}
+
+/* A button is two baselines taller than its line, and sits at the top of the line box,
+   so the line it is on stays a whole number of baselines. */
+.button {
+  display: inline-block;
+  padding: var(--baseline) var(--space-m);
+  vertical-align: top;
+  background-color: var(--color-button);
+  color: var(--color-button-text);
+  text-decoration: none;
+}
+
+.button:hover {
+  background-color: var(--color-button-hover);
+  color: var(--color-button-text);
+}
+
+.block--unknown {
+  padding-block: calc(var(--baseline) * 2);
+  padding-inline: var(--space-s);
+  outline: 2px dashed var(--color-accent);
+  outline-offset: -2px;
+}
+
+/* Images: the lead image and image blocks share the content measure their sizes rule
+   assumes. */
+.lead-image,
+.block--image {
+  max-inline-size: 42rem;
+  margin-inline: 0;
+}
+
+.lead-image {
+  margin-block: 0 var(--line);
+}
+
+figcaption {
+  margin-block-start: var(--baseline);
+  color: var(--color-text-muted);
+  font-size: var(--step--1);
+}
+
+/* Views. */
+.view--album {
+  padding: 0;
+  list-style: none;
+}
+
+.view--listing {
+  padding: 0;
+  list-style: none;
+}
+
+/* Rules between items are inset shadows, which take no space. */
+.view--listing li,
+.summary-item {
+  padding-block: calc(var(--baseline) * 2);
+  box-shadow: inset 0 calc(-1 * var(--rule-width)) 0 var(--color-rule);
+}
+
+.view--listing p,
+.summary-item p {
+  margin-block: 0;
+  color: var(--color-text-muted);
+}
+
+.summary-item h2,
+.summary-item h3,
+.summary-item h4 {
+  font-size: var(--step-1);
+  margin-block: 0;
+}
+
+.summary-item {
+  display: flex;
+  gap: var(--space-s);
+  align-items: start;
+}
+
+/* Thumbnails are whole numbers of baselines tall: 6rem square on phones, and 10rem by
+   6.75rem, close to 3:2, on wider screens. */
+.summary-item picture {
+  display: block;
+  flex: none;
+}
+
+.summary-item img {
+  display: block;
+  inline-size: 6rem;
+  block-size: calc(var(--baseline) * 16);
+  object-fit: cover;
+}
+
+@media (min-width: 48rem) {
+  .summary-item img {
+    inline-size: 10rem;
+    block-size: calc(var(--baseline) * 18);
+  }
+}
+
+.summary-item__date {
+  font-size: var(--step--1);
+}
+
+.view--tabular {
+  overflow: auto;
+}
+
+.view--tabular table {
+  inline-size: 100%;
+  border-collapse: collapse;
+}
+
+.view--tabular thead th {
+  font-size: var(--step--1);
+  color: var(--color-text-muted);
+}
+
+.view--tabular tbody th {
+  min-inline-size: 9em;
+  font-weight: 400;
+}
+
+/* Reader preferences: Fluid Infusion UI Options, styled with the theme's tokens through the
+   custom properties Infusion's stylesheets read. The part's own box is dropped, so its
+   buttons sit in the header row and its panel opens as a full-width row below them.
+   Selectors are one class stronger than Infusion's, whose stylesheets load later. */
+.ui-options {
+  --fl-font-family: var(--font-body);
+  --fl-bgColor: var(--color-background);
+  --fl-fgColor: var(--color-text);
+  --fl-buttonBgColor: var(--color-background);
+  --fl-buttonFgColor: var(--color-link);
+}
+
+.ui-options:not([hidden]) {
+  display: contents;
+}
+
+.region--header .ui-options .fl-panelBar {
+  inline-size: auto;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+}
+
+.region--header .ui-options .fl-prefsEditor-buttons {
+  display: flex;
+  gap: var(--space-s);
+  align-items: baseline;
+  block-size: auto;
+  inline-size: auto;
+  min-block-size: 0;
+  float: none;
+  margin: 0;
+  border: 0;
+  box-shadow: none;
+  background: none;
+}
+
+.region--header .ui-options .fl-prefsEditor-showHide,
+.region--header .ui-options .fl-prefsEditor-reset {
+  min-block-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font: inherit;
+  font-size: var(--step--1);
+  text-align: start;
+  text-decoration: underline;
+  text-decoration-thickness: var(--rule-width);
+  text-underline-offset: 0.2em;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.region--header .ui-options .flc-slidingPanel-panel {
+  flex-basis: 100%;
+  order: 1;
+}
+
+.region--header .ui-options .fl-prefsEditor {
+  min-inline-size: 0;
+  overflow: visible;
+  background: none;
+}
+
+.region--header .ui-options .fl-prefsEditor-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-s);
+  margin: 0;
+  padding-block: var(--space-s) 0;
+  border-spacing: 0;
+}
+
+.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel {
+  display: block;
+  min-inline-size: 0;
+  padding: var(--space-s);
+  border: 0;
+  border-radius: 0;
+  outline: var(--rule-width) solid var(--color-rule);
+  outline-offset: calc(-1 * var(--rule-width));
+  box-shadow: none;
+  background-color: var(--color-surface);
+}
+
+/* On small screens Infusion pages through the panels with arrows beside their headings;
+   here the panels stack, so the arrows go. */
+.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel h2::before,
+.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel h2::after {
+  content: none;
+}
+
+/* The steppers' icons repeat the panel headings. */
+.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel .fl-textfieldStepper [class*="fl-icon-"] {
+  display: none;
+}
+
+.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel h2 {
+  block-size: auto;
+  min-block-size: 0;
+  margin-block: 0 var(--baseline);
+  margin-inline: 0;
+  border: 0;
+  box-shadow: none;
+  font-size: var(--step-0);
+  text-transform: none;
+}
+
+/* Previews of the contrast choices, in each scheme's own colours. */
+.ui-options .katagami-preview-contrast-site {
+  background-color: var(--color-washi);
+  color: var(--color-sumi);
+}
+
+.ui-options .katagami-preview-contrast-high {
+  background-color: #fff;
+  color: #000;
+}
+
+.ui-options .katagami-preview-contrast-dark {
+  background-color: #1c1a17;
+  color: #f2ede3;
+}
+
+.ui-options .katagami-preview-contrast-default {
+  background-image: linear-gradient(135deg, var(--color-washi) 50%, #1c1a17 50%);
+  color: var(--color-link);
+}
+
+/* The status message that announces a failed load is for screen readers; the button
+   itself shows the message. */
+.ui-options__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Infusion offsets each contrast choice's hidden radio input with left and spaces the
+   choices with margin-right, so in right-to-left pages an input sat under the next
+   choice. Logical properties put each input under its own choice in either direction. */
+.region--header .ui-options .fl-prefsEditor .fl-choices .fl-choice input.fl-hidden-accessible {
+  inset: auto;
+  inset-block-start: 1rem;
+  inset-inline-start: 1rem;
+}
+
+.region--header .ui-options .fl-prefsEditor .fl-choices .fl-choice label {
+  margin: 0;
+  margin-inline-end: var(--space-2xs);
+}
+
+.region--header .ui-options .fl-prefsEditor .fl-choices .fl-choice:last-child label {
+  margin-inline-end: 0;
+}

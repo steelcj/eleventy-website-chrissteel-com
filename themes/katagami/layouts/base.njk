@@ -1,0 +1,96 @@
+<!doctype html>
+{#- Each region renders its parts first and appears only when they produce something. #}
+{#- The trail from the language's home page to this page, used by navigation parts. #}
+{%- set navTrail = collections.all | eleventyNavigationBreadcrumb(eleventyNavigation.key, { includeSelf: true, allowMissing: true }) %}
+<html lang="{{ langTag or lang }}" dir="{{ dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if title %}{{ title | typeset(langTag) | safe }} · {% endif %}{{ site.name }}</title>
+  {%- if description %}
+  <meta name="description" content="{{ description | typeset(langTag) | safe }}">
+  {%- endif %}
+  {#- The site's font set, from `fontSet` in site.yaml. Only its CSS loads, and only the
+      regular weight of the font the page's text uses most is preloaded. #}
+  {%- set fontSet = site.fontSet if site.fontSet in katagami.fontSets.names else katagami.fontSets.default %}
+  {%- set fontScript = "arabic" if (locales | localeFor(lang)).fontSet == "arabic" else "latin" %}
+  <link rel="preload" href="{{ katagami.fontSets.preload[fontSet][fontScript] }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/assets/css/theme.css">
+  <link rel="stylesheet" href="/assets/css/fonts/{{ fontSet }}.css" id="font-set" data-font-sets="{{ katagami.fontSets.names | join(' ') }}">
+  {#- The reader's preferences, from the ui-options part, apply before the page is drawn. #}
+  <script>{% include "partials/preferences-head.js" %}</script>
+  {%- block head %}{% endblock %}
+</head>
+<body>
+  <div class="page">
+    {%- block header %}
+    {%- set regionHtml %}
+      {%- for part in regions | regionParts("header", page.inputPath) %}
+      {% include "parts/" + part + ".njk" %}
+      {%- endfor %}
+    {%- endset %}
+    {%- if regionHtml | trim %}
+    <header class="region region--header">
+      {{- regionHtml | safe }}
+    </header>
+    {%- endif %}
+    {%- endblock %}
+
+    {%- block abovecontent %}
+    {%- set regionHtml %}
+      {%- for part in regions | regionParts("abovecontent", page.inputPath) %}
+      {% include "parts/" + part + ".njk" %}
+      {%- endfor %}
+    {%- endset %}
+    {%- if regionHtml | trim %}
+    <div class="region region--abovecontent">
+      {{- regionHtml | safe }}
+    </div>
+    {%- endif %}
+    {%- endblock %}
+
+    <main id="content" class="region region--content" tabindex="-1">
+      {%- block content %}{{ content | safe }}{% endblock %}
+    </main>
+
+    {%- block sidebar %}
+    {%- set regionHtml %}
+      {%- for part in regions | regionParts("sidebar", page.inputPath) %}
+      {% include "parts/" + part + ".njk" %}
+      {%- endfor %}
+    {%- endset %}
+    {%- if regionHtml | trim %}
+    <aside class="region region--sidebar">
+      {{- regionHtml | safe }}
+    </aside>
+    {%- endif %}
+    {%- endblock %}
+
+    {%- block belowcontent %}
+    {%- set regionHtml %}
+      {%- for part in regions | regionParts("belowcontent", page.inputPath) %}
+      {% include "parts/" + part + ".njk" %}
+      {%- endfor %}
+    {%- endset %}
+    {%- if regionHtml | trim %}
+    <div class="region region--belowcontent">
+      {{- regionHtml | safe }}
+    </div>
+    {%- endif %}
+    {%- endblock %}
+
+    {%- block footer %}
+    {%- set regionHtml %}
+      {%- for part in regions | regionParts("footer", page.inputPath) %}
+      {% include "parts/" + part + ".njk" %}
+      {%- endfor %}
+    {%- endset %}
+    {%- if regionHtml | trim %}
+    <footer class="region region--footer">
+      {{- regionHtml | safe }}
+    </footer>
+    {%- endif %}
+    {%- endblock %}
+  </div>
+</body>
+</html>
