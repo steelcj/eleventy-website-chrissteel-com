@@ -1,5 +1,5 @@
-// Reader preferences: shows the preferences part, resets preferences, and loads Fluid
-// Infusion UI Options the first time a reader opens the panel. Preferences are kept in
+// Reader preferences: shows the Settings part, resets preferences, and loads Fluid
+// Infusion UI Options the first time a reader opens the Settings bar. Preferences are kept in
 // localStorage under "katagami-preferences" as { version: 1, fontSet, contrast,
 // textSize, lineSpace }, holding only values that differ from the defaults. Without
 // JavaScript the part stays hidden and the site's and the system's settings apply.
@@ -58,9 +58,10 @@
   // as well, and the store clears the saved preferences.
   panel.querySelector("[data-preferences-reset]")?.addEventListener("click", reset);
 
-  // The first time the panel is opened, Infusion and the theme's setup load, and the panel
+  // The first time the bar is opened, Infusion and the theme's setup load, and the bar
   // then opens through Infusion, which handles the button from then on.
   const toggle = panel.querySelector(".flc-slidingPanel-toggleButton");
+  const toggleLabel = panel.querySelector("[data-settings-label]");
   const base = panel.dataset.infusion;
   const themeStylesheet = document.querySelector('link[href$="/theme.css"]');
   const load = (tag, attributes) =>
@@ -72,14 +73,14 @@
     });
   // If Infusion cannot load, the button says so, a status message announces it, and the
   // rest of the page is untouched; clicking again tries once more.
-  const label = toggle.textContent;
+  const label = toggleLabel.textContent;
   const status = panel.querySelector("[data-preferences-status]");
   let started = false;
   toggle.addEventListener("click", async (event) => {
     if (started) return;
     started = true;
     event.stopImmediatePropagation();
-    toggle.textContent = label;
+    toggleLabel.textContent = label;
     status.textContent = "";
     toggle.setAttribute("aria-busy", "true");
     try {
@@ -92,7 +93,7 @@
       toggle.click();
     } catch {
       started = false;
-      toggle.textContent = panel.dataset.failed;
+      toggleLabel.textContent = panel.dataset.failed;
       status.textContent = panel.dataset.failed;
     } finally {
       toggle.removeAttribute("aria-busy");

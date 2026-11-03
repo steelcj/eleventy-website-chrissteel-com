@@ -4,14 +4,23 @@
 
 ## [0.6.0] - 2026-10-31
 
-The theme is now self-contained: everything a site needs lives in this folder, so a site built on it holds only what uc-automa's `eleventy-site` layout describes. This release breaks every site built on 0.5; see Upgrading from 0.5.
+The theme is now self-contained: everything a site needs lives in this folder, so a site built on it holds only what uc-automa's `eleventy-site` layout describes. Its header follows the header placement specification, `en/docs/parts/header-placement-v0.1.1.md`. This release breaks every site built on 0.5; see Upgrading from 0.5.
 
 ### Added
+
+- The header placement specification, in `en/docs/parts/`: where each element of the header sits, at every width and in both directions, what opens where, and what each control is called on screen and to screen readers.
+- The `brand` part: a decorative seal, hidden from screen readers and a placeholder mark until a site chooses its own, the site name linking home, and a headline and a description from each language's site text, `headline.md` and `description.md`, shown when a site writes them.
+- The `search` part, shown only when `site.yaml` sets `search: true`: a Search button at the end of the site name's row that opens a search bar fixed across the top of the screen as a modal dialog, with focus in its field, closed by its close button or Escape, which return focus to the button. The search itself is later work, so the results area stays empty. `assets/js/search.js` runs it.
+- The `language` part: a Language button, ⊕ with the current language's name and ▾, heard as "Language: English", that opens a dropdown below it, aligned to its outer edge, listing every public language in its own name with the current one marked by `aria-current`. It is a disclosure, with `aria-expanded` and `aria-controls`; Escape, a click elsewhere or focus leaving it closes it. A site with one public language shows none, and fixture locales do not count in a production build. Without JavaScript the languages show as plain links. `assets/js/language.js` runs it.
+- The `publicLocales` filter, the languages readers are offered: every locale but the fixtures, in a production build.
+- Interface strings `settings`, `search`, `searchField` and `closeSearch`, in English, French and Arabic. The Arabic strings are fixture text until an Arabic reader reviews them.
+- Icons for the tools and the search bar, and the placeholder seal, in `assets/img/`, drawn as masks in the text colour.
+- Header checks. `npm run check` checks that the Language button is there exactly when readers are offered more than one language, that it lists them with the page's own marked current and is a disclosure, that Search is there exactly when the site enables it, and that the header's controls come in their order on screen. `npm run check:browser`, at phone and desktop widths in the default language and a right-to-left one, checks each control's spoken name, the focus order, that each tool is at least 24px square, where each part sits, the dropdown and the search bar opening and closing from the keyboard with focus returned, where the Settings bar opens, axe with the dropdown and the search bar open, and, without JavaScript, the Language and Search buttons hidden and the languages shown as links. The build records in `.cache/katagami/directories.json` whether it was for production, so the checks know which languages are public.
 
 - The `overrides` plugin option, a path relative to the repository root. The Nunjucks loader, the layout stubs, the watch targets and the optional `index.js` follow it. Without it, the theme uses no overrides folder.
 - `strings.js`: interface strings are found by a locale's code, then its tag, then its primary language subtag, and a locale with none warns in development.
 - The checks' data file, `checks.yaml` in the site's data directory: `pages`, and the optional `untranslated` and `fixtureChecks`. `scripts/site.mjs` reads it, and `scripts/demo-checks.yaml` is the demo site's copy, with every fixture check.
-- Checks on every site: every page has a translation in each other locale and the reverse, no two pages in a locale share a `translationKey`, the language switcher's links match the translations, every page has a footer and a colophon, and every page listed in `checks.yaml` was built.
+- Checks on every site: every page has a translation in each other locale and the reverse, no two pages in a locale share a `translationKey`, the Language list's links match the translations, every page has a footer and a colophon, and every page listed in `checks.yaml` was built.
 
 ### Changed
 
@@ -22,6 +31,13 @@ The theme is now self-contained: everything a site needs lives in this folder, s
 - Font files are named `<subset>-<weight>-normal.woff2`, in a folder that already names the font, and Atkinson Hyperlegible Next's folder is `hyperlegible-next/`, set with `folder` in `theme.yaml`. Every path in the theme is under 100 characters.
 - The stylelint configuration moved to `stylelint.json` in this folder, with the vendored files in its `ignoreFiles`.
 - `LICENSE.md` is now `LICENSE`.
+- The header is laid out on a grid, in logical terms, as the specification places it: the brand block at the start, Search at the end of the site name's row, Language then Settings at the end of the row above the main menu, the main menu on its own row, and the divider, the header's bottom border, last. Every position holds on narrow screens, where the tools show their icons alone and keep their spoken names, and the main menu stays visible and wraps. Right-to-left pages mirror the whole header. An announcement part, when a site adds one with the class `announcement`, takes the first row, after the skip link. The theme's default header is `[skip-links, brand, search, language, settings, main-nav]`, and the header's code follows the order on screen.
+- "Display preferences" is now "Settings", with ⚙, in English, French and Arabic, and the interface string `preferences` is now `settings`. Its bar opens full width below the main menu and above the divider, pushing the page down, and Reset moved from the header into it.
+- The language chooser at `/` uses `publicLocales`.
+
+### Removed
+
+- The `logo`, `language-switcher` and `ui-options` parts, replaced by `brand`, `language` and `settings`.
 
 ### Fixed
 
@@ -44,7 +60,10 @@ The theme is now self-contained: everything a site needs lives in this folder, s
 5. Rename `src/{lang}/_site/` to `src/{lang}/site-text/` and delete `_site.11tydata.yaml` from each.
 6. Update any reference to `/assets/fonts/` or to font file names, such as a `preload` in an override.
 7. Drop any workaround for the defects fixed here, such as a `t` filter wrapped in the overrides folder's `index.js`.
-8. Rebuild and run `npm run check` and `npm run check:browser`.
+8. Rename the removed parts wherever a site names them: `logo` is now `brand`, `language-switcher` is now `language` and `ui-options` is now `settings`, in `_data/regions.yaml`, in any `regionOverrides`, in fixture checks that list a region's parts, and in the overrides folder, whose `parts/logo.njk`, `parts/language-switcher.njk` and `parts/ui-options.njk` are no longer used. A site that lists its header in `regions.yaml` writes it as `[skip-links, brand, search, language, settings, main-nav]`, in that order.
+9. Write each language's headline and description in `src/{lang}/site-text/headline.md` and `description.md`, or leave them out. Set `search: true` in `site.yaml` only to show the Search button.
+10. Replace "Display preferences" with "Settings" in any check or text that names the button, and the `preferences` interface string with `settings`.
+11. Rebuild and run `npm run check` and `npm run check:browser`.
 
 ## [0.5.1] - 2026-10-29
 

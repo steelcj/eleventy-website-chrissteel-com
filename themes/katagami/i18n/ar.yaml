@@ -1,3 +1,4 @@
+# Fixture text until an Arabic reader has reviewed it.
 skipToContent: انتقل إلى المحتوى
 mainNavigation: التنقل الرئيسي
 language: اللغة
@@ -15,5 +16,8 @@ title: العنوان
 description: الوصف
 date: التاريخ
 reset: إعادة الضبط
-preferences: تفضيلات العرض
 preferencesFailed: تعذّر تحميل التفضيلات
+settings: الإعدادات
+search: بحث
+searchField: ابحث في الموقع
+closeSearch: إغلاق البحث

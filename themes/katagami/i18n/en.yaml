@@ -15,5 +15,8 @@ title: Title
 description: Description
 date: Date
 reset: Reset
-preferences: Display preferences
 preferencesFailed: Preferences couldn’t load
+settings: Settings
+search: Search
+searchField: Search this site
+closeSearch: Close search

@@ -1,11 +1,31 @@
 /* Regions and parts. */
+/* The header, in the order of its code: an announcement when a site adds one, the brand
+   block with Search at the end of the site name's row, Language and Settings at the end of
+   the row above the main menu, the main menu on its own row, and the Settings bar below it.
+   Its bottom border is the divider, its last element. The grid is laid out in logical
+   terms, so the whole header mirrors in right-to-left pages, and keeps every position on
+   narrow screens, where the tools show their icons alone. */
 .region--header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "brand brand search"
+    ". language settings"
+    "menu menu menu"
+    "bar bar bar";
   gap: var(--space-xs) var(--space-m);
   padding-block: var(--space-m);
   border-block-end: var(--rule-width) solid var(--color-rule);
+}
+
+/* Text kept for screen readers only. */
+.visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .region--abovecontent {
@@ -41,7 +61,7 @@
 
 /* Lists of links in a row. */
 .main-nav ul,
-.language-switcher ul,
+.language__list,
 .breadcrumbs ol,
 .site-actions ul {
   display: flex;
@@ -72,24 +92,245 @@
   white-space: nowrap;
 }
 
-.logo {
+/* The brand block: the seal beside the site name, the headline and the description. */
+.brand {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  column-gap: var(--space-s);
+}
+
+.brand > :not(.brand__seal) {
+  grid-column: 2;
+}
+
+/* The seal is a mark, so it never mirrors. Until a site chooses its own, it is the
+   theme's placeholder. */
+.brand__seal {
+  grid-column: 1;
+  grid-row: 1 / span 3;
+  inline-size: calc(var(--baseline) * 8);
+  block-size: calc(var(--baseline) * 8);
+  background-color: var(--color-accent);
+  mask: url("/assets/img/seal.svg") center / contain no-repeat;
+}
+
+.brand__name {
   color: var(--color-text);
   font-family: var(--font-heading);
   font-size: var(--step-1);
   font-weight: 700;
   text-decoration: none;
-  margin-inline-end: auto;
 }
 
-.language-switcher {
+.brand__headline,
+.brand__description {
+  color: var(--color-text-muted);
   font-size: var(--step--1);
+}
+
+.brand__headline > :last-child,
+.brand__description > :last-child {
+  margin-block-end: 0;
+}
+
+/* The tools: Search, Language and Settings. Each shows an icon and its name, and on
+   narrow screens the icon alone; the name stays for screen readers. Each is at least
+   24px square, the smallest target WCAG 2.2 allows, also when it is an icon alone. */
+.tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  min-block-size: 1.5rem;
+  min-inline-size: 1.5rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-link);
+  font: inherit;
+  font-size: var(--step--1);
+  text-align: start;
+  text-decoration: underline;
+  text-decoration-thickness: var(--rule-width);
+  text-underline-offset: 0.2em;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.tool[hidden] {
+  display: none;
+}
+
+.tool__icon {
+  display: inline-block;
+  inline-size: 1em;
+  block-size: 1em;
+  flex: none;
+  background-color: currentColor;
+  mask: var(--icon) center / contain no-repeat;
+}
+
+.tool__icon--search { --icon: url("/assets/img/search.svg"); }
+.tool__icon--language { --icon: url("/assets/img/language.svg"); }
+.tool__icon--settings { --icon: url("/assets/img/settings.svg"); }
+.tool__icon--close { --icon: url("/assets/img/close.svg"); }
+
+.tool__icon--caret {
+  --icon: url("/assets/img/caret.svg");
+
+  inline-size: 0.75em;
+}
+
+@media (max-width: 47.999rem) {
+  .tool__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tool__icon--caret {
+    display: none;
+  }
+
+  .tool__icon {
+    inline-size: 1.25em;
+    block-size: 1.25em;
+  }
+}
+
+/* Language: without JavaScript, the languages show as a row of links. With it, they
+   open below the button, aligned to its outer edge, over the page content. */
+.language {
+  display: flex;
+  position: relative;
+  font-size: var(--step--1);
+}
+
+.language[data-enhanced] .language__list {
+  position: absolute;
+  z-index: 10;
+  inset-block-start: calc(100% + var(--space-2xs));
+  inset-inline-end: 0;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  min-inline-size: 10rem;
+  padding: var(--space-xs) var(--space-s);
+  border: var(--rule-width) solid var(--color-rule);
+  background-color: var(--color-surface);
+}
+
+.language[data-enhanced] .language__list[hidden] {
+  display: none;
+}
+
+.language__list a[aria-current]::after {
+  content: "✓" / "";
+  display: inline-block;
+  margin-inline-start: var(--space-2xs);
 }
 
 /* Language names are set in system fonts, so a page never downloads a web font just
    to show another language's name. */
-.language-switcher a,
+.language__list a,
 .language-list a {
   font-family: var(--font-system);
+}
+
+/* Search: a bar fixed across the top of the screen, over the header. */
+.search__bar {
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline: 0;
+  inline-size: auto;
+  max-inline-size: none;
+  margin: 0;
+  padding: var(--space-s) var(--gutter);
+  border: 0;
+  border-block-end: var(--rule-width) solid var(--color-rule);
+  background-color: var(--color-background);
+  color: var(--color-text);
+}
+
+.search__bar::backdrop {
+  background-color: rgb(0 0 0 / 30%);
+}
+
+.search__form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  max-inline-size: var(--page-max);
+  margin-inline: auto;
+}
+
+.search__form .tool__icon {
+  inline-size: 1.25em;
+  block-size: 1.25em;
+}
+
+.search__field {
+  flex: 1;
+  min-inline-size: 0;
+  padding: var(--space-2xs) var(--space-xs);
+  border: var(--rule-width) solid var(--color-rule);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.search__results {
+  max-inline-size: var(--page-max);
+  margin-inline: auto;
+}
+
+/* Where each part sits in the header. */
+/* An announcement part, when a site adds one, is the first thing after the skip link. */
+.region--header:has(> .announcement) {
+  grid-template-areas:
+    "announcement announcement announcement"
+    "brand brand search"
+    ". language settings"
+    "menu menu menu"
+    "bar bar bar";
+}
+
+.region--header > .announcement {
+  grid-area: announcement;
+}
+
+.region--header > .brand {
+  grid-area: brand;
+}
+
+.region--header > .search {
+  display: flex;
+  grid-area: search;
+  align-self: start;
+  justify-self: end;
+}
+
+.region--header > .language {
+  grid-area: language;
+  align-self: center;
+}
+
+.region--header > .settings__toggle,
+.region--header .settings > .settings__toggle {
+  grid-area: settings;
+  align-self: center;
+}
+
+.region--header .settings__bar {
+  grid-area: bar;
+}
+
+.region--header > .main-nav {
+  grid-area: menu;
 }
 
 .breadcrumbs {
@@ -410,11 +651,11 @@ figcaption {
   font-weight: 400;
 }
 
-/* Reader preferences: Fluid Infusion UI Options, styled with the theme's tokens through the
-   custom properties Infusion's stylesheets read. The part's own box is dropped, so its
-   buttons sit in the header row and its panel opens as a full-width row below them.
-   Selectors are one class stronger than Infusion's, whose stylesheets load later. */
-.ui-options {
+/* Settings: Fluid Infusion UI Options, styled with the theme's tokens through the custom
+   properties Infusion's stylesheets read. The part's own box is dropped, so its button
+   sits with the other tools and its bar opens as a full-width row below the main menu.
+   Selectors are one class stronger than Infusion's. */
+.settings {
   --fl-font-family: var(--font-body);
   --fl-bgColor: var(--color-background);
   --fl-fgColor: var(--color-text);
@@ -422,61 +663,28 @@ figcaption {
   --fl-buttonFgColor: var(--color-link);
 }
 
-.ui-options:not([hidden]) {
+.settings:not([hidden]) {
   display: contents;
 }
 
-.region--header .ui-options .fl-panelBar {
-  inline-size: auto;
-  background: none;
-  box-shadow: none;
-  color: inherit;
-}
-
-.region--header .ui-options .fl-prefsEditor-buttons {
+/* The Settings bar: full width, below the main menu and above the divider. */
+.region--header .settings__actions {
   display: flex;
-  gap: var(--space-s);
-  align-items: baseline;
-  block-size: auto;
-  inline-size: auto;
-  min-block-size: 0;
-  float: none;
-  margin: 0;
-  border: 0;
-  box-shadow: none;
-  background: none;
+  justify-content: flex-end;
+  padding-block-start: var(--space-xs);
 }
 
-.region--header .ui-options .fl-prefsEditor-showHide,
-.region--header .ui-options .fl-prefsEditor-reset {
-  min-block-size: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--color-link);
-  font: inherit;
-  font-size: var(--step--1);
-  text-align: start;
-  text-decoration: underline;
-  text-decoration-thickness: var(--rule-width);
-  text-underline-offset: 0.2em;
-  text-transform: none;
-  cursor: pointer;
+.region--header .settings .flc-slidingPanel-panel {
+  inline-size: 100%;
 }
 
-.region--header .ui-options .flc-slidingPanel-panel {
-  flex-basis: 100%;
-  order: 1;
-}
-
-.region--header .ui-options .fl-prefsEditor {
+.region--header .settings .fl-prefsEditor {
   min-inline-size: 0;
   overflow: visible;
   background: none;
 }
 
-.region--header .ui-options .fl-prefsEditor-panels {
+.region--header .settings .fl-prefsEditor-panels {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   gap: var(--space-s);
@@ -485,7 +693,7 @@ figcaption {
   border-spacing: 0;
 }
 
-.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel {
+.region--header .settings .fl-prefsEditor-panels .fl-prefsEditor-panel {
   display: block;
   min-inline-size: 0;
   padding: var(--space-s);
@@ -499,17 +707,17 @@ figcaption {
 
 /* On small screens Infusion pages through the panels with arrows beside their headings;
    here the panels stack, so the arrows go. */
-.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel h2::before,
-.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel h2::after {
+.region--header .settings .fl-prefsEditor-panels .fl-prefsEditor-panel h2::before,
+.region--header .settings .fl-prefsEditor-panels .fl-prefsEditor-panel h2::after {
   content: none;
 }
 
 /* The steppers' icons repeat the panel headings. */
-.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel .fl-textfieldStepper [class*="fl-icon-"] {
+.region--header .settings .fl-prefsEditor-panels .fl-prefsEditor-panel .fl-textfieldStepper [class*="fl-icon-"] {
   display: none;
 }
 
-.region--header .ui-options .fl-prefsEditor-panels .fl-prefsEditor-panel h2 {
+.region--header .settings .fl-prefsEditor-panels .fl-prefsEditor-panel h2 {
   block-size: auto;
   min-block-size: 0;
   margin-block: 0 var(--baseline);
@@ -521,51 +729,40 @@ figcaption {
 }
 
 /* Previews of the contrast choices, in each scheme's own colours. */
-.ui-options .katagami-preview-contrast-site {
+.settings .katagami-preview-contrast-site {
   background-color: var(--color-washi);
   color: var(--color-sumi);
 }
 
-.ui-options .katagami-preview-contrast-high {
+.settings .katagami-preview-contrast-high {
   background-color: #fff;
   color: #000;
 }
 
-.ui-options .katagami-preview-contrast-dark {
+.settings .katagami-preview-contrast-dark {
   background-color: #1c1a17;
   color: #f2ede3;
 }
 
-.ui-options .katagami-preview-contrast-default {
+.settings .katagami-preview-contrast-default {
   background-image: linear-gradient(135deg, var(--color-washi) 50%, #1c1a17 50%);
   color: var(--color-link);
-}
-
-/* The status message that announces a failed load is for screen readers; the button
-   itself shows the message. */
-.ui-options__status {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
 }
 
 /* Infusion offsets each contrast choice's hidden radio input with left and spaces the
    choices with margin-right, so in right-to-left pages an input sat under the next
    choice. Logical properties put each input under its own choice in either direction. */
-.region--header .ui-options .fl-prefsEditor .fl-choices .fl-choice input.fl-hidden-accessible {
+.region--header .settings .fl-prefsEditor .fl-choices .fl-choice input.fl-hidden-accessible {
   inset: auto;
   inset-block-start: 1rem;
   inset-inline-start: 1rem;
 }
 
-.region--header .ui-options .fl-prefsEditor .fl-choices .fl-choice label {
+.region--header .settings .fl-prefsEditor .fl-choices .fl-choice label {
   margin: 0;
   margin-inline-end: var(--space-2xs);
 }
 
-.region--header .ui-options .fl-prefsEditor .fl-choices .fl-choice:last-child label {
+.region--header .settings .fl-prefsEditor .fl-choices .fl-choice:last-child label {
   margin-inline-end: 0;
 }

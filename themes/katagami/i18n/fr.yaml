@@ -15,5 +15,8 @@ title: Titre
 description: Description
 date: Date
 reset: Réinitialiser
-preferences: Préférences d’affichage
 preferencesFailed: Les préférences n’ont pas pu être chargées
+settings: Paramètres
+search: Rechercher
+searchField: Rechercher dans le site
+closeSearch: Fermer la recherche

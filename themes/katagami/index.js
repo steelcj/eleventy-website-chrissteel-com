@@ -250,7 +250,8 @@ export default async function katagami(eleventyConfig, options = {}) {
       fontSets: fontSetState(manifest),
       strings,
       siteText,
-      // Fixture locales are left out of the language switcher in production builds.
+      // Fixture locales are left out of the Language button and the language chooser in
+      // production builds.
       production: process.env.ELEVENTY_ENV === "production",
     };
     return state;
@@ -380,6 +381,8 @@ export default async function katagami(eleventyConfig, options = {}) {
     return text;
   });
   eleventyConfig.addFilter("localeFor", (locales, code) => locales.find((locale) => locale.code === code) ?? locales[0]);
+  // The languages readers are offered: every locale but the fixtures, in a production build.
+  eleventyConfig.addFilter("publicLocales", (locales) => locales.filter((locale) => !(locale.fixture && state.production)));
   // The parts in a region, inherited as Plone portlets are: the site's _data/regions.yaml
   // (or the theme default), then regionOverrides from each folder's directory data,
   // top-down, then from the page. A list adds parts, a part name replaces the region,
@@ -600,10 +603,12 @@ export default async function katagami(eleventyConfig, options = {}) {
     filter: ["**/*", "!**/*.{jpg,jpeg,png,webp,avif,tif,tiff}"],
   });
 
-  // The site's directories, for the theme's check scripts, which run outside Eleventy.
+  // The site's directories, and whether the build was for production, for the theme's
+  // check scripts, which run outside Eleventy.
   eleventyConfig.on("eleventy.after", ({ directories }) => {
     fs.mkdirSync(".cache/katagami", { recursive: true });
-    fs.writeFileSync(".cache/katagami/directories.json", `${JSON.stringify(directories, null, 2)}\n`);
+    const built = { ...directories, production: state.production };
+    fs.writeFileSync(".cache/katagami/directories.json", `${JSON.stringify(built, null, 2)}\n`);
   });
 
   // index.js in the overrides folder, when present, extends the theme as the folder's other

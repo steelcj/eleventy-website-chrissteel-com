@@ -7,7 +7,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { frenchSpacing } from "../typography.js";
-import { fixtureChecks, inputDir, locales, outputDir as builtDir, pages, tags, untranslated } from "./site.mjs";
+import { fixtureChecks, inputDir, locales, outputDir as builtDir, pages, publicLocales, settings, tags, untranslated } from "./site.mjs";
 
 const outputDir = process.argv[2] ?? builtDir;
 
@@ -27,7 +27,7 @@ const cspFile = path.join(outputDir, "assets/csp.json");
 const cspHashes = fs.existsSync(cspFile) ? JSON.parse(fs.readFileSync(cspFile, "utf8"))["script-src"] : [];
 
 // The parts a fixture check on a region can name.
-const partClasses = ["skip-link", "logo", "main-nav", "language-switcher", "breadcrumbs", "section-nav", "footer-text", "site-actions", "colophon"];
+const partClasses = ["skip-link", "brand", "search", "language", "main-nav", "breadcrumbs", "section-nav", "footer-text", "site-actions", "colophon"];
 
 // Pages only: assets/ holds HTML fragments, such as Infusion's panel templates.
 function htmlFiles(dir) {
@@ -62,6 +62,31 @@ for (const file of files) {
   // Pages in a language folder carry that language's footer and colophon.
   if (tags[code] && !html.includes('class="footer-text"')) report("no footer text");
   if (tags[code] && !html.includes('class="colophon"')) report("no colophon");
+
+  // The header: a Language button only when readers are offered more than one language,
+  // listing each of them with the page's own marked current, as a disclosure rather than a
+  // menu; a Search button only when the site enables search; and its controls in the
+  // order they appear on screen.
+  const header = html.match(/<header class="region region--header">[\s\S]*?<\/header>/)?.[0];
+  if (tags[code] && header) {
+    const language = header.match(/<nav class="language"[\s\S]*?<\/nav>/)?.[0];
+    if (publicLocales.length > 1 !== Boolean(language)) report(`${language ? "a" : "no"} Language button, with ${publicLocales.length} public languages`);
+    if (language) {
+      const listed = [...language.matchAll(/<a href="[^"]*" lang="([^"]*)"/g)].map((match) => match[1]);
+      const expected = publicLocales.map((locale) => tags[locale.code]);
+      if (listed.join() !== expected.join()) report(`the Language list has [${listed.join(", ")}], expected [${expected.join(", ")}]`);
+      const current = [...language.matchAll(/<a [^>]*lang="([^"]*)"[^>]*aria-current="true"/g)].map((match) => match[1]);
+      const own = publicLocales.some((locale) => locale.code === code) ? [tags[code]] : [];
+      if (current.join() !== own.join()) report(`the Language list marks [${current.join(", ")}] as current, expected [${own.join(", ")}]`);
+      if (!language.includes('aria-expanded="false" aria-controls="language-list"') || language.includes("aria-haspopup")) {
+        report("the Language button is not a disclosure with aria-expanded and aria-controls");
+      }
+    }
+    if (Boolean(settings.search) !== header.includes("data-search-open")) report(`${settings.search ? "no" : "a"} Search button, with search ${settings.search ? "enabled" : "disabled"}`);
+    const markers = ['class="skip-link"', 'class="announcement"', 'class="brand__name"', "data-search-open", "data-language-toggle", "settings__toggle", 'class="main-nav"'];
+    const found = markers.map((marker) => [marker, header.indexOf(marker)]).filter(([, at]) => at >= 0);
+    if (found.some(([, at], i) => i > 0 && at < found[i - 1][1])) report(`header controls out of order: ${found.sort((a, b) => a[1] - b[1]).map(([marker]) => marker).join(", ")}`);
+  }
 
   // Every page loads one font set and preloads exactly one font file, which must exist.
   if (!/<link rel="stylesheet" href="\/assets\/css\/fonts\/[a-z-]+\.css" id="font-set"[^>]*>/.test(html)) report("no font set stylesheet");
@@ -151,7 +176,7 @@ for (const [input, expected] of franceExpectations) {
 
 // Every page has a translation in every language, in both directions. Pages are translations
 // when they share a key: `translationKey` in front matter, or by default the URL without its
-// language prefix, as in the theme. The built language switcher must link to each one.
+// language prefix, as in the theme. The built Language list must link to each one.
 const translations = new Map();
 for (const { code } of locales) {
   if (!fs.existsSync(path.join(inputDir, code))) {
@@ -180,11 +205,11 @@ for (const [key, urls] of translations) {
       problems.push(`${url}: page missing`);
       continue;
     }
-    const switcher = fs.readFileSync(builtFile(url), "utf8").match(/<nav class="language-switcher"[\s\S]*?<\/nav>/)?.[0] ?? "";
-    // A production build leaves fixture locales out of the switcher.
-    for (const [, href, tag] of switcher.matchAll(/<a href="([^"]*)" lang="([^"]*)"/g)) {
+    const languages = fs.readFileSync(builtFile(url), "utf8").match(/<nav class="language"[\s\S]*?<\/nav>/)?.[0] ?? "";
+    // A production build leaves fixture locales out of the Language list.
+    for (const [, href, tag] of languages.matchAll(/<a href="([^"]*)" lang="([^"]*)"/g)) {
       const code = locales.find((locale) => tags[locale.code] === tag)?.code;
-      if (urls[code] && href !== urls[code]) problems.push(`${url}: switcher links ${tag} to ${href}, expected ${urls[code]}`);
+      if (urls[code] && href !== urls[code]) problems.push(`${url}: the Language list links ${tag} to ${href}, expected ${urls[code]}`);
     }
   }
 }

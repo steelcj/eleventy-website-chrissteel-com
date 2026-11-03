@@ -1,0 +1,24 @@
+{#- Search, shown only when the site sets `search: true` in site.yaml. The button opens a
+    bar fixed across the top of the screen, over the header, as a modal dialog: focus moves
+    into its field, and its close button and Escape close it, returning focus to the
+    button. The search itself, its index and its results, is later work: the results area
+    stays empty. Without JavaScript the button stays hidden. #}
+{%- if site.search %}
+<div class="search" data-search>
+  <button type="button" class="tool search__toggle" hidden data-search-open>
+    <span class="tool__icon tool__icon--search" aria-hidden="true"></span><span class="tool__label">{{ "search" | t(lang) }}</span>
+  </button>
+  <dialog class="search__bar" aria-label="{{ 'search' | t(lang) }}" data-search-dialog>
+    <form class="search__form" role="search" data-search-form>
+      <label class="visually-hidden" for="search-field">{{ "searchField" | t(lang) }}</label>
+      <span class="tool__icon tool__icon--search" aria-hidden="true"></span>
+      <input class="search__field" id="search-field" type="search" name="q" autocomplete="off" placeholder="{{ 'search' | t(lang) }}…">
+      <button type="button" class="tool search__close" data-search-close>
+        <span class="tool__icon tool__icon--close" aria-hidden="true"></span><span class="visually-hidden">{{ "closeSearch" | t(lang) }}</span>
+      </button>
+    </form>
+    <div class="search__results" aria-live="polite" data-search-results></div>
+  </dialog>
+</div>
+<script src="/assets/js/search.js" defer></script>
+{%- endif %}

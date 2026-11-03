@@ -1,0 +1,21 @@
+{#- The Language button and its dropdown, a disclosure: the button, heard as
+    "Language: <current language>", shows and hides the list of every public language in
+    its own name, the current one marked. Each links to this page in that language, or to
+    that language's home page when there is no translation. A site with one public language
+    shows nothing; fixture locales do not count in a production build. Without JavaScript
+    the button stays hidden and the list shows as plain links. #}
+{%- set publicLocales = locales | publicLocales %}
+{%- if publicLocales | length > 1 %}
+{%- set current = locales | localeFor(lang) %}
+<nav class="language" aria-label="{{ 'language' | t(lang) }}" data-language>
+  <button type="button" class="tool language__toggle" aria-expanded="false" aria-controls="language-list" hidden data-language-toggle>
+    <span class="tool__icon tool__icon--language" aria-hidden="true"></span><span class="visually-hidden">{{ (("language" | t(lang)) + ":") | typeset(langTag) | safe }} </span><span class="tool__label">{{ current.name }}</span><span class="tool__icon tool__icon--caret" aria-hidden="true"></span>
+  </button>
+  <ul class="language__list" id="language-list">
+    {%- for locale in publicLocales %}
+    <li><a href="{{ collections.all | translationUrl(locale.code, page.url, lang, translationKey) }}" lang="{{ locale.tag or locale.code }}" hreflang="{{ locale.tag or locale.code }}" dir="{{ locale.dir }}"{% if locale.code == lang %} aria-current="true"{% endif %}>{{ locale.name }}</a></li>
+    {%- endfor %}
+  </ul>
+</nav>
+<script src="/assets/js/language.js" defer></script>
+{%- endif %}

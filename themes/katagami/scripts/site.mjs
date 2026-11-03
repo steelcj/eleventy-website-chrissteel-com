@@ -24,12 +24,18 @@ function readData(name) {
 
 export const inputDir = directories.input;
 export const outputDir = directories.output;
+// Whether the last build was for production, which leaves fixture locales out of the
+// languages readers are offered.
+export const production = directories.production === true;
 export const settings = readData("site");
 export const locales = readData("locales");
 export const { pages = [], fixtureChecks = [], untranslated = [] } = readData("checks");
 
 // Each locale's full language tag, such as fr-CA, by its code.
 export const tags = Object.fromEntries(locales.map((locale) => [locale.code, locale.tag ?? locale.code]));
+
+// The languages readers are offered, as the theme's publicLocales filter finds them.
+export const publicLocales = locales.filter((locale) => !(locale.fixture && production));
 
 // The locales the browser checks exercise, by what each is for rather than by name: the
 // site's default, another left-to-right one if it has one, and a right-to-left one.

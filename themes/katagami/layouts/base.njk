@@ -17,7 +17,7 @@
   <link rel="preload" href="{{ katagami.fontSets.preload[fontSet][fontScript] }}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/assets/css/theme.css">
   <link rel="stylesheet" href="/assets/css/fonts/{{ fontSet }}.css" id="font-set" data-font-sets="{{ katagami.fontSets.names | join(' ') }}">
-  {#- The reader's preferences, from the ui-options part, apply before the page is drawn. #}
+  {#- The reader's preferences, from the settings part, apply before the page is drawn. #}
   <script>{% include "partials/preferences-head.js" %}</script>
   {%- block head %}{% endblock %}
 </head>

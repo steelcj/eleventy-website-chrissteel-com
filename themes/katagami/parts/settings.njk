@@ -1,0 +1,24 @@
+{#- Settings: the reader's preferences, with Fluid Infusion UI Options, for fonts,
+    contrast, text size and line spacing. The button sits with the other tools; its bar
+    opens full width below the main menu, pushing the page down, and holds Reset. Infusion
+    loads only when a reader first opens the bar. The part stays hidden without JavaScript,
+    when the site's settings and the reader's system settings apply; saved preferences
+    apply before the page is drawn. The button's name stays "Settings"; aria-expanded tells
+    whether the bar is open. #}
+<section class="flc-prefsEditor-separatedPanel fl-prefsEditor-separatedPanel settings" data-preferences hidden
+  data-infusion="/assets/vendor/infusion/" data-setup="/assets/js/preferences-uio.js"
+  data-locale="{{ langTag }}" data-direction="{{ dir }}"
+  data-font-sets="{{ katagami.fontSets.names | join(' ') }}" data-font-set="{{ fontSet }}"
+  data-failed="{{ 'preferencesFailed' | t(lang) }}">
+  <button type="button" class="tool settings__toggle flc-slidingPanel-toggleButton" aria-expanded="false" aria-controls="settings-panel">
+    <span class="tool__icon tool__icon--settings" aria-hidden="true"></span><span class="tool__label" data-settings-label>{{ "settings" | t(lang) }}</span>
+  </button>
+  <span class="visually-hidden" role="status" data-preferences-status></span>
+  <div class="settings__bar" hidden data-settings-bar>
+    <div class="flc-slidingPanel-panel" id="settings-panel"></div>
+    <div class="settings__actions">
+      <button type="button" class="tool settings__reset flc-prefsEditor-reset" data-preferences-reset>{{ "reset" | t(lang) }}</button>
+    </div>
+  </div>
+</section>
+<script src="/assets/js/preferences.js" defer></script>

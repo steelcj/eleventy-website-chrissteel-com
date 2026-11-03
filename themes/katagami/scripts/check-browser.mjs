@@ -1,8 +1,8 @@
 // Checks the built site in a real browser: the reader preferences panel and the
 // preferences it saves, the panel under the site's Content Security Policy and when
-// Infusion fails to load, the reader's system settings, accessibility audits with
-// axe-core, which fonts each page downloads, the vertical rhythm, and the page without
-// JavaScript. Its pages come from the site's checks.yaml and its locales from the site.
+// Infusion fails to load, the reader's system settings, the header's controls, focus
+// order and placement, accessibility audits with axe-core, which fonts each page
+// downloads, the vertical rhythm, and the page without JavaScript. Its pages come from the site's checks.yaml and its locales from the site.
 // Uses the Chromium that Playwright installs (npx playwright install chromium), not the
 // system browser. Run after a build: npm run build && npm run check:browser. The output
 // folder may be given as an argument.
@@ -11,7 +11,7 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { chromium } from "playwright";
-import { home, inner, interfaceString, locales, outputDir as builtDir, pages as sitePages, panelMessage, primary, rtl, second, settings } from "./site.mjs";
+import { home, inner, interfaceString, locales, outputDir as builtDir, pages as sitePages, panelMessage, primary, publicLocales, rtl, second, settings } from "./site.mjs";
 
 const outputDir = path.resolve(process.argv[2] ?? builtDir);
 const types = {
@@ -138,7 +138,10 @@ const WHITE = "rgb(255, 255, 255)";
   now = await state(page);
   expect(now.fontSet === "mincho" && now.contrast === "dark" && now.textSize === "1.3" && now.lineSpace === "1.1", `saved preferences did not apply on the next page: ${JSON.stringify(now)}`);
   expect(!requests.some((request) => request.includes("infusion")), "applying saved preferences loaded Infusion");
+  expect(!(await page.isVisible("[data-preferences-reset]")), "Reset is shown while the Settings bar is closed");
 
+  // Reset is in the Settings bar.
+  await openPanel(page);
   await page.click("[data-preferences-reset]");
   await page.waitForTimeout(300);
   now = await state(page);
@@ -148,15 +151,22 @@ const WHITE = "rgb(255, 255, 255)";
   await context.close();
 }
 
-// The panel's button is a disclosure: its label stays the same and aria-expanded follows
-// the panel.
+// The Settings button is a disclosure: its label stays the same and aria-expanded follows
+// the bar, which shows with Reset in it when open and is gone when closed.
 {
   const context = await browser.newContext();
   const { page } = await open(context, home(second));
   const button = () =>
     page.evaluate(() => {
       const toggle = document.querySelector(".flc-slidingPanel-toggleButton");
-      return { text: toggle.textContent, expanded: toggle.getAttribute("aria-expanded"), pressed: toggle.getAttribute("aria-pressed"), label: toggle.getAttribute("aria-label") };
+      const label = toggle.querySelector("[data-settings-label]");
+      return {
+        text: label.textContent,
+        expanded: toggle.getAttribute("aria-expanded"),
+        pressed: toggle.getAttribute("aria-pressed"),
+        label: toggle.getAttribute("aria-label") ?? label.getAttribute("aria-label"),
+        bar: !document.querySelector("[data-settings-bar]").hidden,
+      };
     });
   const closed = await button();
   await openPanel(page);
@@ -164,7 +174,8 @@ const WHITE = "rgb(255, 255, 255)";
   await page.click(".flc-slidingPanel-toggleButton");
   await page.waitForTimeout(800);
   const closedAgain = await button();
-  expect(closed.text === interfaceString(second, "preferences") && opened.text === closed.text && closedAgain.text === closed.text, `the button's label changed: ${JSON.stringify([closed, opened, closedAgain])}`);
+  expect(!closed.bar && opened.bar && !closedAgain.bar, `the Settings bar does not follow the button: ${JSON.stringify([closed, opened, closedAgain])}`);
+  expect(closed.text === interfaceString(second, "settings") && opened.text === closed.text && closedAgain.text === closed.text, `the button's label changed: ${JSON.stringify([closed, opened, closedAgain])}`);
   expect(closed.expanded === "false" && opened.expanded === "true" && closedAgain.expanded === "false", `aria-expanded does not follow the panel: ${JSON.stringify([closed, opened, closedAgain])}`);
   expect([closed, opened, closedAgain].every((state) => state.pressed === null && state.label === null), "the button has aria-pressed or aria-label");
   await context.close();
@@ -214,7 +225,7 @@ const WHITE = "rgb(255, 255, 255)";
     await page.click(".flc-slidingPanel-toggleButton");
     await page.waitForTimeout(1000);
     const result = await page.evaluate(() => ({
-      button: document.querySelector(".flc-slidingPanel-toggleButton").textContent,
+      button: document.querySelector(".flc-slidingPanel-toggleButton [data-settings-label]").textContent,
       status: document.querySelector("[data-preferences-status]").textContent,
       expanded: document.querySelector(".flc-slidingPanel-toggleButton").getAttribute("aria-expanded"),
       heading: document.querySelector("main h1")?.textContent,
@@ -357,8 +368,15 @@ const WHITE = "rgb(255, 255, 255)";
   let context = await browser.newContext({ javaScriptEnabled: false, colorScheme: "dark" });
   let { page } = await open(context, home(primary));
   expect((await background(page)) === DARK, "a dark system setting did not give dark colours");
-  expect(!(await page.isVisible("[data-preferences]")), "the preferences part is shown without JavaScript");
+  expect(!(await page.isVisible("[data-preferences]")), "the Settings part is shown without JavaScript");
   expect((await state(page)).fontSet === settings.fontSet, "the site's font set is not used without JavaScript");
+  // Without JavaScript the Language and Search buttons stay hidden, and the languages show
+  // as plain links.
+  expect(!(await page.isVisible("[data-language-toggle]")) && !(await page.isVisible("[data-search-open]")), "a Language or Search button is shown without JavaScript");
+  if (publicLocales.length > 1) {
+    const links = await page.locator("#language-list a").evaluateAll((items) => items.filter((item) => item.checkVisibility()).length);
+    expect(links === publicLocales.length, `without JavaScript, ${links} of ${publicLocales.length} language links are shown`);
+  }
   await context.close();
 
   context = await browser.newContext({ javaScriptEnabled: false, contrast: "more" });
@@ -384,8 +402,162 @@ if (rtl) {
   await context.close();
 }
 
+// The header, as its placement specification sets it out, at phone and desktop widths, in
+// the default language and a right-to-left one: what screen readers call each control,
+// which controls are present, the focus order, the search bar and the Language dropdown
+// opening and closing from the keyboard, where each part sits, and where each control
+// opens. Axe audits the page with the dropdown and the search bar open.
+{
+  const offered = publicLocales.length > 1;
+  const axeIssues = async (page) => {
+    await page.addScriptTag({ path: path.resolve("node_modules/axe-core/axe.min.js") });
+    return page.evaluate(async () =>
+      (await window.axe.run(document)).violations.map((violation) => `${violation.id} at ${violation.nodes.map((node) => node.target.join(" ")).slice(0, 2).join(", ")}`),
+    );
+  };
+  const box = (page, selector) =>
+    page.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (!element || !element.checkVisibility()) return null;
+      const { left, right, top, bottom, width } = element.getBoundingClientRect();
+      return { left, right, top, bottom, width };
+    }, selector);
+  const focused = (page) =>
+    page.evaluate(() => {
+      const element = document.activeElement;
+      const names = { ".skip-link": "skip link", ".brand__name": "site name", "[data-search-open]": "Search", "[data-language-toggle]": "Language", ".settings__toggle": "Settings", ".main-nav a": "main menu", "#search-field": "search field" };
+      return Object.entries(names).find(([selector]) => element.matches(selector))?.[1] ?? element.outerHTML.slice(0, 60);
+    });
+
+  for (const locale of [primary, ...(rtl ? [rtl] : [])]) {
+    for (const width of [390, 1280]) {
+      const context = await browser.newContext({ viewport: { width, height: 900 } });
+      const url = home(locale);
+      const where = `${url} at ${width}px`;
+      const { page, errors } = await open(context, url);
+      const header = page.locator(".region--header");
+      const count = (role, name) => header.getByRole(role, { name, exact: true }).count();
+
+      // What screen readers call each control. The visible word is part of each name.
+      // "Language: English", with the colon spaced as the language spaces it.
+      const escape = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const language = new RegExp(`^${escape(interfaceString(locale, "language"))}\\s*:\\s*${escape(locale.name)}$`);
+      expect((await count("link", settings.name)) === 1, `${where}: no link named "${settings.name}"`);
+      expect((await count("button", interfaceString(locale, "settings"))) === 1, `${where}: no button named "${interfaceString(locale, "settings")}"`);
+      expect((await count("button", language)) === (offered ? 1 : 0), `${where}: ${offered ? "no" : "a"} button named "${language}"`);
+      expect((await count("button", interfaceString(locale, "search"))) === (settings.search ? 1 : 0), `${where}: Search is ${settings.search ? "missing" : "shown"}`);
+      expect((await page.getByRole("navigation", { name: interfaceString(locale, "mainNavigation"), exact: true }).count()) === 1, `${where}: no main navigation landmark`);
+      expect((await page.getAttribute(".brand__seal", "aria-hidden")) === "true", `${where}: the seal is not hidden from screen readers`);
+      for (const selector of [".settings__toggle", ...(offered ? ["[data-language-toggle]"] : [])]) {
+        expect((await page.getAttribute(selector, "aria-expanded")) === "false", `${where}: ${selector} is not collapsed`);
+      }
+
+      // The tools show their names on wide screens and their icons alone on narrow ones.
+      const label = await box(page, ".settings__toggle .tool__label");
+      expect(width < 768 ? label.width <= 1 : label.width > 1, `${where}: the Settings label is ${label.width > 1 ? "shown" : "hidden"}`);
+      // Every tool is a target at least 24px square, as WCAG 2.2 asks.
+      const small = await page.locator(".region--header .tool").evaluateAll((tools) =>
+        tools
+          .filter((tool) => tool.checkVisibility())
+          .map((tool) => [tool.className, tool.getBoundingClientRect()])
+          .filter(([, rect]) => rect.width < 24 || rect.height < 24)
+          .map(([name, rect]) => `${name} ${Math.round(rect.width)}×${Math.round(rect.height)}`),
+      );
+      expect(small.length === 0, `${where}: tools smaller than 24px: ${small.join(", ")}`);
+
+      // Focus moves through the header in the order it appears on screen.
+      const order = ["skip link", "site name", ...(settings.search ? ["Search"] : []), ...(offered ? ["Language"] : []), "Settings", "main menu"];
+      const met = [];
+      for (let i = 0; i < order.length; i++) {
+        await page.keyboard.press("Tab");
+        met.push(await focused(page));
+      }
+      expect(met.join(", ") === order.join(", "), `${where}: focus order is ${met.join(", ")}, expected ${order.join(", ")}`);
+
+      // Where each part sits: the brand block at the start, Search at the end of the site
+      // name's row, Language then Settings at the end of the row above the main menu, the
+      // main menu on its own row, and nothing below the divider. Right-to-left pages mirror.
+      const rtlPage = locale.dir === "rtl";
+      const area = await box(page, ".region--header");
+      const fromStart = (part) => (rtlPage ? area.right - part.right : part.left - area.left);
+      const fromEnd = (part) => (rtlPage ? part.left - area.left : area.right - part.right);
+      const brand = await box(page, ".brand");
+      const name = await box(page, ".brand__name");
+      const settingsButton = await box(page, ".settings__toggle");
+      const menu = await box(page, ".main-nav");
+      expect(Math.abs(fromStart(brand)) < 2, `${where}: the brand block is not at the start`);
+      expect(Math.abs(fromEnd(settingsButton)) < 2, `${where}: Settings is not at the end`);
+      expect(settingsButton.top >= brand.bottom - 1 && menu.top >= settingsButton.bottom - 1, `${where}: Settings is not on the row between the brand block and the main menu`);
+      expect(Math.abs(fromStart(menu)) < 2, `${where}: the main menu does not start at the start`);
+      expect((await page.locator(".main-nav a").evaluateAll((links) => links.every((link) => link.checkVisibility()))), `${where}: a main menu item is hidden`);
+      if (offered) {
+        const languageButton = await box(page, "[data-language-toggle]");
+        expect(Math.abs(languageButton.top - settingsButton.top) < 4, `${where}: Language and Settings are not on one row`);
+        expect(rtlPage ? languageButton.left >= settingsButton.right - 1 : languageButton.right <= settingsButton.left + 1, `${where}: Language does not come before Settings`);
+      }
+      if (settings.search) {
+        const searchButton = await box(page, "[data-search-open]");
+        expect(Math.abs(fromEnd(searchButton)) < 2 && searchButton.top < name.bottom && searchButton.bottom > name.top, `${where}: Search is not at the end of the site name's row`);
+      }
+
+      // The Language dropdown opens below its button, aligned to its outer edge, and
+      // Escape closes it and returns focus to the button.
+      if (offered) {
+        await page.click("[data-language-toggle]");
+        const button = await box(page, "[data-language-toggle]");
+        const list = await box(page, "#language-list");
+        expect((await page.getAttribute("[data-language-toggle]", "aria-expanded")) === "true" && list, `${where}: the Language dropdown did not open`);
+        if (list) {
+          expect(list.top >= button.bottom - 1 && Math.abs(fromEnd(list) - fromEnd(button)) < 2, `${where}: the Language dropdown is not below its button, aligned to its outer edge`);
+        }
+        const current = await page.locator('#language-list a[aria-current="true"]').allTextContents();
+        const own = publicLocales.includes(locale) ? [locale.name] : [];
+        expect(current.join() === own.join(), `${where}: the Language dropdown marks [${current.join(", ")}] as current`);
+        const issues = await axeIssues(page);
+        expect(issues.length === 0, `axe, Language open, ${where}: ${issues.join("; ")}`);
+        await page.keyboard.press("Escape");
+        expect(
+          (await page.getAttribute("[data-language-toggle]", "aria-expanded")) === "false" && !(await box(page, "#language-list")) && (await focused(page)) === "Language",
+          `${where}: Escape did not close the Language dropdown and return focus to its button`,
+        );
+      }
+
+      // The search bar opens fixed across the top of the screen, as a dialog, with focus in
+      // its field; Escape and its close button close it and return focus to Search.
+      if (settings.search) {
+        await page.click("[data-search-open]");
+        const bar = await box(page, "[data-search-dialog]");
+        expect((await page.evaluate(() => document.querySelector("[data-search-dialog]").open)) && (await focused(page)) === "search field", `${where}: the search bar did not open with focus in its field`);
+        expect(bar && bar.top === 0 && Math.abs(bar.width - width) < 2, `${where}: the search bar is not across the top of the screen`);
+        const close = await box(page, "[data-search-close]");
+        expect(close && close.width >= 24, `${where}: the search bar's close button is smaller than 24px`);
+        const issues = await axeIssues(page);
+        expect(issues.length === 0, `axe, search open, ${where}: ${issues.join("; ")}`);
+        await page.keyboard.press("Escape");
+        expect(!(await box(page, "[data-search-dialog]")) && (await focused(page)) === "Search", `${where}: Escape did not close the search bar and return focus to Search`);
+        await page.click("[data-search-open]");
+        await page.click("[data-search-close]");
+        expect(!(await box(page, "[data-search-dialog]")) && (await focused(page)) === "Search", `${where}: the close button did not close the search bar and return focus to Search`);
+      }
+
+      // The Settings bar opens full width below the main menu and above the divider, and
+      // holds Reset.
+      await openPanel(page);
+      const settingsBar = await box(page, "[data-settings-bar]");
+      const menuNow = await box(page, ".main-nav");
+      const areaNow = await box(page, ".region--header");
+      expect(settingsBar && settingsBar.top >= menuNow.bottom - 1 && settingsBar.bottom <= areaNow.bottom + 1, `${where}: the Settings bar is not below the main menu and above the divider`);
+      expect(settingsBar && Math.abs(settingsBar.width - areaNow.width) < 2, `${where}: the Settings bar is not full width`);
+      expect(await page.isVisible("[data-settings-bar] [data-preferences-reset]"), `${where}: Reset is not in the Settings bar`);
+
+      expect(errors.length === 0, `${where}: errors in the header: ${errors.join("; ")}`);
+      await context.close();
+    }
+  }
+}
+
 // Latin pages never download an Arabic font, even with Arabic language names in the
-// switcher; pages in a locale with `fontSet: arabic` use the Arabic companion.
+// Language list; pages in a locale with `fontSet: arabic` use the Arabic companion.
 {
   const context = await browser.newContext();
   const arabic = locales.find((locale) => locale.fontSet === "arabic");

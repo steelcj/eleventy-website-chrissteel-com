@@ -1,0 +1,17 @@
+{#- The brand block: the seal, the site name linking home, and the headline and description
+    from the language's site text, headline.md and description.md, each shown only when
+    the site has written it. The headline and description are plain text, not headings:
+    the page's single H1 belongs to the page. The seal is decorative, so screen readers
+    skip it; until a site chooses its own, it is the theme's placeholder mark. #}
+{%- set headline = katagami.siteText[lang].headline %}
+{%- set tagline = katagami.siteText[lang].description %}
+<div class="brand">
+  <span class="brand__seal" aria-hidden="true"></span>
+  <a class="brand__name" href="/{{ lang }}/" rel="home"><bdi>{{ site.name }}</bdi></a>
+  {%- if headline.html %}
+  <div class="brand__headline">{{ headline.html | safe }}</div>
+  {%- endif %}
+  {%- if tagline.html %}
+  <div class="brand__description">{{ tagline.html | safe }}</div>
+  {%- endif %}
+</div>

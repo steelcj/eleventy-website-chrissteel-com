@@ -34,7 +34,7 @@ fixtureChecks:
   # A folder, a subfolder and a page adding to one region, in that order.
   - page: /en/fixtures/nested/regions/
     region: belowcontent
-    parts: [footer-text, colophon, logo]
+    parts: [footer-text, colophon, brand]
   # Titles are plain text with smart punctuation: no Markdown, no HTML.
   - page: /en/fixtures/titles/
     contains:

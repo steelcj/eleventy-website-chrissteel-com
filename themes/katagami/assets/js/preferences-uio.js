@@ -84,15 +84,23 @@
     });
   }
 
-  // The panel's button is a disclosure: its visible label stays the same and aria-expanded
-  // tells whether the panel is open. Infusion also sets aria-pressed, a role and a changing
-  // aria-label on it, which are removed after each change.
+  // The Settings button is a disclosure: its visible label stays the same and aria-expanded
+  // tells whether the bar is open. Infusion also sets aria-pressed, a role and a changing
+  // aria-label on it and on its label, which are removed after each change.
   fluid.registerNamespace("katagami.prefs");
   katagami.prefs.disclosure = (that) => {
     that.locate("toggleButton").removeAttr("aria-pressed").removeAttr("aria-label").removeAttr("role");
+    that.locate("toggleButtonLabel").removeAttr("aria-label");
+  };
+  // The bar holds Infusion's sliding panel and Reset. It is shown before the panel slides
+  // open, and hidden once it has slid shut, unless it was opened again meanwhile: the
+  // first opening comes while the panel's initial closing is still under way.
+  const bar = panel.querySelector("[data-settings-bar]");
+  katagami.prefs.showBar = (that) => {
+    bar.hidden = !that.model.isShowing;
   };
 
-  // Creates UI Options in the preferences part, and resolves once its sliding panel, which
+  // Creates UI Options in the Settings part, and resolves once its sliding panel, which
   // handles the toggle button, exists. The editor itself loads lazily, when the panel first
   // opens, so this does not wait for it.
   preferences.create = () =>
@@ -157,7 +165,11 @@
         prefsEditorLoader: {
           lazyLoad: true,
           slidingPanel: {
+            // Infusion writes the button's text into its label, which leaves the icon alone.
+            selectors: { toggleButtonLabel: "[data-settings-label]" },
             listeners: {
+              "onPanelShow.katagamiBar": { listener: "katagami.prefs.showBar", args: ["{that}"], priority: "first" },
+              "afterPanelHide.katagamiBar": { listener: "katagami.prefs.showBar", args: ["{that}"] },
               "onCreate.katagamiReady": { listener: () => resolve(), priority: "last" },
               "onPanelShow.katagamiDisclosure": { listener: "katagami.prefs.disclosure", args: ["{that}"], priority: "last" },
               "onPanelHide.katagamiDisclosure": { listener: "katagami.prefs.disclosure", args: ["{that}"], priority: "last" },
