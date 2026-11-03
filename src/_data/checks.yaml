@@ -52,8 +52,8 @@ fixtureChecks:
     lacks: [" "]
   # Interface strings follow the language.
   - page: /fr-ca/
-    contains: ["Aller au contenu", 'aria-label="Navigation principale"', "Préférences d’affichage"]
-    lacks: ["Skip to content", "Main navigation"]
+    contains: ["Aller au contenu", 'aria-label="Navigation principale"', ">Paramètres<", ">Langue : <"]
+    lacks: ["Skip to content", "Main navigation", ">Settings<"]
   - page: /en-ca/
     contains: ["’", '<html lang="en-CA"', "Skip to content"]
     lacks: ["«"]

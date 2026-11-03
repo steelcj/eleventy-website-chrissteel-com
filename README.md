@@ -1,6 +1,6 @@
 # chrissteel.com
 
-The personal website of Christopher Steel: a plain, text-first writer's site in Canadian English and French, built with Eleventy on the [Katagami](https://github.com/steelcj/eleventy-theme-katagami) theme. All content is placeholder text for now. An Arabic locale is kept as a right-to-left fixture: it builds everywhere and stays out of the production language switcher and chooser until an Arabic reader has reviewed it.
+The personal website of Christopher Steel: a plain, text-first writer's site in Canadian English and French, built with Eleventy on the [Katagami](https://github.com/steelcj/eleventy-theme-katagami) theme. All content is placeholder text for now. An Arabic locale is kept as a right-to-left fixture: it builds everywhere and stays out of the production Language list and language chooser until an Arabic reader has reviewed it.
 
 ## Install, build, serve and check
 
@@ -12,7 +12,7 @@ npx playwright install chromium   # once, for npm run check:browser
 
 npm start                  # serve at http://localhost:8080 and rebuild on change
 npm run build              # build all locales into _site/
-npm run build:production   # build with the fixture locale out of the switcher and chooser
+npm run build:production   # build with the fixture locale out of the Language list and chooser
 npm run lint               # stylelint, including the logical-property rule
 npm run check              # check the built pages, and that every page has its translations
 npm run check:browser      # check the built site in a real browser

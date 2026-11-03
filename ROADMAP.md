@@ -5,12 +5,14 @@ Forward plan only; completed items move to [CHANGELOG.md](CHANGELOG.md).
 ## Next
 
 - Release uc-automa with the rule for names under `vendor/` (uc-automa 0040), and move this repository's pin to it, so that `uc-automa check` reports it conforms.
+- Let uc-automa's `eleventy-site` layout keep its documentation in `en/docs/`, as this repository now does, and move the pin to that release.
 - Carry the theme commits back to github.com/steelcj/eleventy-theme-katagami as Katagami 0.6.0, then tag it. `en/docs/sessions/` has the list.
 
 ## Later
 
-- Write the real content, replacing every placeholder.
-- An Arabic reader reviews the `ar` locale, before it joins the production language switcher.
+- Write the real content, replacing every placeholder, the header's headline and description included, and choose the seal.
+- Search: the index and results behind the Search button, then `search: true`.
+- An Arabic reader reviews the `ar` locale, before it joins the production Language list.
 - Where kickoffs and screenshots live, once uc-automa decides.
 - SAT generates `src/` from a SAT collection, with this hand-built site as the target its output must match.
 

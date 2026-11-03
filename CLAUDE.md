@@ -20,9 +20,10 @@ This repository holds chrissteel.com, Christopher Steel's personal website: a wr
 - Every page has a translation in each language folder, and the folders match. Folder names stay English in every language. A page name may differ by language, in ASCII kebab-case, when it sets `translationKey` to the path of the `en-ca` page without the language prefix, such as `/articles/plain-text-lasts/`. `npm run check` fails on a page without its translations.
 - `date` values and images match across translations. Every image has `alt` text unless it is marked `decorative: true`.
 - The main menu is curated in `src/_data/navigation/{code}.yaml`: five items, no call-to-action button. A page's `menuTitle` sets its short title in breadcrumbs and section navigation, not in the main menu.
-- Site text is in `src/{code}/site-text/`, `footer.md` and `colophon.md`, and is placed into the footer, never published as pages.
+- Site text is in `src/{code}/site-text/`: `headline.md` and `description.md`, placed into the header's brand block, and `footer.md` and `colophon.md`, placed into the footer. None is published as a page.
 - French is Canadian French. Type plain spaces and straight quotes; the theme sets the spacing and quotation marks.
-- The `ar` locale is fixture text only, until an Arabic reader has reviewed it. It builds everywhere and stays out of the production language switcher and chooser.
+- The `ar` locale is fixture text only, until an Arabic reader has reviewed it. It builds everywhere and stays out of the production Language list and language chooser.
+- Search stays off (`search: false` in `src/_data/site.yaml`) until searching itself is built.
 - Until real content is written, each page's first paragraph is marked as placeholder text. The French spacing expectations in `src/_data/checks.yaml` read the placeholder articles, so re-point them when those articles are replaced.
 - The pages the checks test are listed in `src/_data/checks.yaml`. Add at least one page for every new folder, in each locale.
 - `en/docs/dev/kickoffs/` and the screenshots in `.cache/` stay untracked until uc-automa decides where they live. `en/docs/dev/kickoffs/` is left out with `.git/info/exclude`, so each clone adds it there.

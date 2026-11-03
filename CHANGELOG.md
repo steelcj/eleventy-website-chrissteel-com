@@ -10,6 +10,7 @@ All notable changes are recorded here, in the form of [Keep a Changelog](https:/
 - The sidecar and the founding decision, uc-automa's offerings, and `REUSE.toml` annotations with the licence texts for the fonts, Fluid Infusion and its bundled libraries.
 - `src/_data/checks.yaml`, the pages and fixture checks the theme's checks read.
 - `CONTRIBUTING.md`, `ROADMAP.md`, the documentation index and the session record for phases 1 and 2.
+- A placeholder headline and description in each locale, `headline.md` and `description.md` in its site text, for the header's brand block, and the session record for the header placement.
 
 ### Changed
 
@@ -17,6 +18,7 @@ All notable changes are recorded here, in the form of [Keep a Changelog](https:/
 - `package.json`'s scripts run from `themes/katagami/scripts/`, and stylelint extends the theme's configuration from its `stylelint` key.
 - Site text moved to `src/{code}/site-text/`, and each locale's data file is now `{code}.11tydata.json`.
 - The documentation moved from `en-ca/docs/` to `en/docs/`, for a global audience. Only `en/docs/dev/kickoffs/` is left out, in each clone's `.git/info/exclude`.
+- The header follows Katagami's header placement: the brand block, Language and Settings, with search left off (`search: false`) until searching is built.
 
 ### Removed
 
