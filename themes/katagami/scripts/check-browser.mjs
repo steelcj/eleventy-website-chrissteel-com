@@ -363,6 +363,38 @@ const WHITE = "rgb(255, 255, 255)";
   await context.close();
 }
 
+// With forced colours, as in Windows' contrast themes, the browser replaces background
+// colours, which would hide the icons the theme draws as masks over one: the header's
+// tools, the search bar's, the seal and the breadcrumb separator. Each must keep a colour
+// unlike the page's, in light and dark forced colours.
+{
+  const painted = (page) =>
+    page.evaluate(() => {
+      const page = getComputedStyle(document.documentElement).backgroundColor;
+      const marks = [...document.querySelectorAll(".tool__icon, .brand__seal")]
+        .filter((element) => element.checkVisibility())
+        .map((element) => [element.className, getComputedStyle(element).backgroundColor]);
+      for (const item of document.querySelectorAll(".breadcrumbs li + li")) marks.push(["breadcrumb separator", getComputedStyle(item, "::before").backgroundColor]);
+      return { forced: matchMedia("(forced-colors: active)").matches, hidden: marks.filter(([, colour]) => colour === page || /rgba\(.*, 0\)$/.test(colour)).map(([name, colour]) => `${name} ${colour}`), count: marks.length };
+    });
+  for (const colorScheme of ["light", "dark"]) {
+    const context = await browser.newContext({ forcedColors: "active", colorScheme });
+    for (const url of new Set([home(primary), inner(primary), ...(rtl ? [inner(rtl)] : [])])) {
+      const { page } = await open(context, url);
+      let result = await painted(page);
+      expect(result.forced && result.count > 0, `${url}, forced colours (${colorScheme}): the check found no icons, or forced colours did not apply`);
+      expect(result.hidden.length === 0, `${url}, forced colours (${colorScheme}): invisible icons: ${result.hidden.join(", ")}`);
+      if (await page.isVisible("[data-search-open]")) {
+        await page.click("[data-search-open]");
+        result = await painted(page);
+        expect(result.hidden.length === 0, `${url}, forced colours (${colorScheme}), search open: invisible icons: ${result.hidden.join(", ")}`);
+      }
+      await page.close();
+    }
+    await context.close();
+  }
+}
+
 // The reader's system settings apply without JavaScript, and an explicit choice overrides them.
 {
   let context = await browser.newContext({ javaScriptEnabled: false, colorScheme: "dark" });

@@ -46,6 +46,7 @@ The theme is now self-contained: everything a site needs lives in this folder, s
 - The page title repeated the site name when a page's title equals it, as on a home page titled with the site's name. The title now appears alone.
 - A locale listed without a folder is reported by the checks, rather than crashing them.
 - The abovecontent and belowcontent regions sat outside any landmark, which axe reports as `region` for anything but navigation placed in them. Each is now a labelled `<section>`, with the new interface strings `pageContext` and `additionalContent`.
+- With forced colours, as in Windows' contrast themes, every icon drawn as a mask disappeared, because forced colours replace background colours with the page's: the breadcrumb separator since 0.5, and the header's tools, the search bar's icons and the seal. They keep their colour now, the forced text colour, and `npm run check:browser` checks them in light and dark forced colours.
 
 ### Advice for sites
 

@@ -203,6 +203,23 @@
   }
 }
 
+/* With forced colours, as in Windows' contrast themes, the browser replaces background
+   colours with the page's, which would hide every icon drawn as a mask over one. The
+   icons and the breadcrumb separator keep their own background, the current colour,
+   which forced colours have already set to the text colour; the seal takes the text
+   colour too. */
+@media (forced-colors: active) {
+  .tool__icon,
+  .brand__seal,
+  .breadcrumbs li + li::before {
+    forced-color-adjust: none;
+  }
+
+  .brand__seal {
+    background-color: CanvasText;
+  }
+}
+
 /* Language: without JavaScript, the languages show as a row of links. With it, they
    open below the button, aligned to its outer edge, over the page content. */
 .language {
