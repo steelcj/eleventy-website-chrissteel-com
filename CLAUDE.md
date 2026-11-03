@@ -8,10 +8,8 @@ This repository holds chrissteel.com, Christopher Steel's personal website: a wr
 
 ## Where changes go
 
-- `themes/katagami/` is never edited here. It is a copy of the theme at the release and commit recorded in the decision records under `en-ca/docs/decisions/`, replaced whole when the theme is updated.
-- For phase 2 only, that rule is suspended: theme changes are made here first, as Katagami 0.6.0, and carried back to github.com/steelcj/eleventy-theme-katagami later. The condition is that every theme change is committed separately from site changes and touches only `themes/katagami/`, so that `git format-patch -- themes/katagami` can export it.
-- Changes go in `src/` and `src/_data/`. The site has no overrides for now, so `eleventy.config.js` passes none. When it needs one, it goes in `themes/chrissteel/`, passed as the theme's `overrides` option: a file there shadows the theme file of the same path, and an `index.js` there holds site-only build code and never sets directories.
-- `npm run vendor-fonts` and `npm run vendor-infusion` write into `themes/katagami/`, so they are not run here. They stay for parity with the theme.
+- `themes/katagami/` release and commit recorded in the decision records under `en/docs/decisions/`.
+- `npm run vendor-fonts` and `npm run vendor-infusion` write into `themes/katagami/`
 
 ## Content rules
 

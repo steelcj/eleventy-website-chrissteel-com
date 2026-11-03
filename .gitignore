@@ -1,5 +1,6 @@
 .venv/
 node_modules/
+resume.txt
 /_site/
 .cache/
 *.log
