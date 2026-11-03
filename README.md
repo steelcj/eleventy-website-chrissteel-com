@@ -24,7 +24,7 @@ The repository follows [uc-automa](https://github.com/steelcj/uc-automa), instal
 
 ## Updating the theme
 
-`themes/katagami/` is a copy of the theme; site changes go in `src/` and `src/_data/`. To update the theme, replace `themes/katagami/` with a newer copy, record its release and commit in a new decision record in `en-ca/docs/decisions/`, then build and run every check. For phase 2 only, theme changes are made here first and carried back to the theme's repository; `CLAUDE.md` has the condition.
+`themes/katagami/` is a copy of the theme; site changes go in `src/` and `src/_data/`. To update the theme, replace `themes/katagami/` with a newer copy, record its release and commit in a new decision record in `en/docs/decisions/`, then build and run every check. Until Katagami 0.6.0 is tagged, theme changes are made here first and carried back to the theme's repository; `CLAUDE.md` has the condition.
 
 ## SAT
 

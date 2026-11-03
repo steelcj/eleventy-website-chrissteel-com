@@ -16,6 +16,7 @@ All notable changes are recorded here, in the form of [Keep a Changelog](https:/
 - The copy of Katagami moved to 0.6.0, made here first and carried back to its repository later. The site passes no `overrides`, since it has none.
 - `package.json`'s scripts run from `themes/katagami/scripts/`, and stylelint extends the theme's configuration from its `stylelint` key.
 - Site text moved to `src/{code}/site-text/`, and each locale's data file is now `{code}.11tydata.json`.
+- The documentation moved from `en-ca/docs/` to `en/docs/`, for a global audience. Only `en/docs/dev/kickoffs/` is left out, in each clone's `.git/info/exclude`.
 
 ### Removed
 

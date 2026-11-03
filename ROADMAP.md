@@ -1,11 +1,11 @@
-#  Roadmap
+# Roadmap
 
 Forward plan only; completed items move to [CHANGELOG.md](CHANGELOG.md).
 
 ## Next
 
 - Release uc-automa with the rule for names under `vendor/` (uc-automa 0040), and move this repository's pin to it, so that `uc-automa check` reports it conforms.
-- Carry the theme commits back to github.com/steelcj/eleventy-theme-katagami as Katagami 0.6.0, then tag it. `en-ca/docs/sessions/` has the list.
+- Carry the theme commits back to github.com/steelcj/eleventy-theme-katagami as Katagami 0.6.0, then tag it. `en/docs/sessions/` has the list.
 
 ## Later
 

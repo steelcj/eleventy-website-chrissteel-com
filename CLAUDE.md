@@ -8,8 +8,10 @@ This repository holds chrissteel.com, Christopher Steel's personal website: a wr
 
 ## Where changes go
 
-- `themes/katagami/` release and commit recorded in the decision records under `en/docs/decisions/`.
-- `npm run vendor-fonts` and `npm run vendor-infusion` write into `themes/katagami/`
+- `themes/katagami/` is never edited here. It is a copy of the theme at the release and commit recorded in the decision records under `en/docs/decisions/`, replaced whole when the theme is updated.
+- Until Katagami 0.6.0 is carried back and tagged, that rule is suspended: theme changes are made here first, as Katagami 0.6.0, and carried back to github.com/steelcj/eleventy-theme-katagami later. The condition is that every theme change is committed separately from site changes and touches only `themes/katagami/`, so that `git format-patch -- themes/katagami` can export it.
+- Changes go in `src/` and `src/_data/`. The site has no overrides for now, so `eleventy.config.js` passes none. When it needs one, it goes in `themes/chrissteel/`, passed as the theme's `overrides` option: a file there shadows the theme file of the same path, and an `index.js` there holds site-only build code and never sets directories.
+- `npm run vendor-fonts` and `npm run vendor-infusion` write into `themes/katagami/`, so they are not run here. They stay for parity with the theme.
 
 ## Content rules
 
@@ -23,7 +25,7 @@ This repository holds chrissteel.com, Christopher Steel's personal website: a wr
 - The `ar` locale is fixture text only, until an Arabic reader has reviewed it. It builds everywhere and stays out of the production language switcher and chooser.
 - Until real content is written, each page's first paragraph is marked as placeholder text. The French spacing expectations in `src/_data/checks.yaml` read the placeholder articles, so re-point them when those articles are replaced.
 - The pages the checks test are listed in `src/_data/checks.yaml`. Add at least one page for every new folder, in each locale.
-- `en/docs/dev/kickoffs/` and the screenshots in `.cache/` stay untracked until uc-automa decides where they live. `en/` is left out with `.git/info/exclude`, so each clone adds it there.
+- `en/docs/dev/kickoffs/` and the screenshots in `.cache/` stay untracked until uc-automa decides where they live. `en/docs/dev/kickoffs/` is left out with `.git/info/exclude`, so each clone adds it there.
 
 ## Definition of done
 

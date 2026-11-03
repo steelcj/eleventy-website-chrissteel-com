@@ -6,7 +6,7 @@ SPDX-FileCopyrightText = "Christopher Steel"
 SPDX-License-Identifier = "MIT"
 
 [[annotations]]
-path = ["en-ca/**", "README.md", "CHANGELOG.md", "ROADMAP.md", "CONTRIBUTING.md", "CLAUDE.md"]
+path = ["en/**", "README.md", "CHANGELOG.md", "ROADMAP.md", "CONTRIBUTING.md", "CLAUDE.md"]
 SPDX-FileCopyrightText = "Christopher Steel"
 SPDX-License-Identifier = "CC-BY-4.0"
 
@@ -29,6 +29,11 @@ SPDX-License-Identifier = "CC-BY-4.0"
 path = ["themes/katagami/**"]
 SPDX-FileCopyrightText = "2026 Vishpala"
 SPDX-License-Identifier = "MIT"
+
+[[annotations]]
+path = ["themes/katagami/en/docs/**"]
+SPDX-FileCopyrightText = "Christopher Steel"
+SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
 path = ["themes/katagami/assets/vendor/fonts/hyperlegible-next/**"]

@@ -7,7 +7,7 @@ This is Christopher Steel's personal website. Changes are reviewed by Christophe
 - Follow the content rules and the definition of done in `CLAUDE.md`: the build has no errors or warnings, and `npm run lint`, `npm run check`, `npm run check:browser` and `uc-automa check` pass.
 - A page gets its translation in every locale, in the same commit.
 - Regenerate the documentation index with `uc-automa docs index`; never edit it by hand.
-- A choice that shapes the site is a decision record in `en-ca/docs/decisions/`.
+- A choice that shapes the site is a decision record in `en/docs/decisions/`.
 
 ## Licences
 
