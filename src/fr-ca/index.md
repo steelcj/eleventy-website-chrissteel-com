@@ -1,5 +1,5 @@
 ---
-title: Christopher Steel
+title: "Titre provisoire : notes sur l'écriture et la publication qui durent"
 description: Écrits et outils pour une publication Web accessible et souveraine.
 blocks:
   - type: listing

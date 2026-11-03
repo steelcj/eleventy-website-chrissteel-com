@@ -1,5 +1,5 @@
 ---
-title: Christopher Steel
+title: "عنوان مؤقت: ملاحظات عن كتابة ونشر يدومان"
 description: كتابات وأدوات للنشر على الويب بطريقة متاحة للجميع ومستقلة.
 blocks:
   - type: listing

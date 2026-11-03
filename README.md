@@ -20,6 +20,8 @@ npm run check:browser      # check the built site in a real browser
 
 The pages the checks test are listed in `src/_data/checks.yaml`. `CLAUDE.md` holds the content rules and the definition of done.
 
+To write or edit the site's content, read [Content on chrissteel.com](en/docs/guides/content/content-on-chrissteel-com-v0.1.0.md), which builds on the theme's guide, [Creating and Editing Content on a Katagami Site](themes/katagami/en/docs/guides/content/creating-and-editing-content-v0.1.0.md).
+
 The repository follows [uc-automa](https://github.com/steelcj/uc-automa), installed into `.venv/` as the process Creating a New Repository with uc-automa shows. Run `.venv/bin/uc-automa check` before committing.
 
 ## Updating the theme

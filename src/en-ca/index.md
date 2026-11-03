@@ -1,5 +1,5 @@
 ---
-title: Christopher Steel
+title: "Placeholder headline: notes on writing and publishing that last"
 description: Writing and tools for accessible, sovereign web publishing.
 blocks:
   - type: listing
