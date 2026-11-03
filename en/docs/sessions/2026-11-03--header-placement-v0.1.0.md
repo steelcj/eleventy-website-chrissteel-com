@@ -59,20 +59,23 @@ Decided in the work, which the kickoff did not cover:
 - New interface strings: `settings`, `search`, `searchField` and `closeSearch`. `preferences` is gone, and the panel's own messages now say "Settings", "Paramètres" and "الإعدادات".
 - The `publicLocales` filter gives the languages readers are offered, and the build records in `.cache/katagami/directories.json` whether it was for production, so the checks can tell.
 - The specification's status stays Draft. Nothing in it turned out wrong, but its order of the header's code needs the two readings above.
+- With forced colours, every icon drawn as a mask disappeared: the header's tools, the search bar's icons, the seal, and the breadcrumb separator since 0.5. They opt out of the adjustment under `forced-colors: active` and keep the current colour, already the forced text colour, and the seal takes `CanvasText`. A browser check covers it in light and dark forced colours; it was written first and failed on every icon.
 
 ## What was made
 
-Three commits on `main`, made after review and not yet pushed:
+Commits on `main`. The first three were made after review and pushed; the fourth followed and is not yet pushed:
 
 1. `a6b5eb7`, site: the repairs to `d6a345b`.
 2. `cfd6f49`, theme: the header placement, touching only `themes/katagami/`, with the specification's version 0.1.1.
-3. Site: chrissteel.com on the new header, its site text, checks and documentation, and this record.
+3. `a07e647`, site: chrissteel.com on the new header, its site text, checks and documentation, and this record.
+4. `8e0f02d`, theme: icons visible with forced colours, touching only `themes/katagami/`.
 
 Theme commits to carry back to github.com/steelcj/eleventy-theme-katagami, after those the earlier session lists:
 
 - `d6a345b`, which holds the specification's version 0.1.0; `git format-patch -- themes/katagami` exports only that file from it.
 - `cfd6f49`, the header placement.
-- Export both with the earlier ones: `git format-patch ed76e09..HEAD -- themes/katagami`.
+- `8e0f02d`, icons visible with forced colours.
+- Export them with the earlier ones: `git format-patch ed76e09..HEAD -- themes/katagami`.
 
 The demo needs these changes outside the folder, which cannot travel in the theme commit:
 
@@ -81,7 +84,7 @@ The demo needs these changes outside the folder, which cannot travel in the them
 - `src/en/fixtures/nested/regions.md`: `logo` becomes `brand` in its `regionOverrides` and its text.
 - A headline and description in each locale's `site-text/`.
 
-Checks, on the site and on the scratch demo, each in a development and a production build: `npm run build` with no warnings, `npm run lint`, `npm run check` and `npm run check:browser` pass. A production copy of the demo with one public language shows no Language button and passes too. Screenshots of the header at 390px and 1280px, in en-ca and ar on the site and in en and ar on the demo, closed and with the Language dropdown, the Settings bar and, on the demo, the search bar open, are in `.cache/review/header/`.
+Checks, on the site and on the scratch demo, each in a development and a production build: `npm run build` with no warnings, `npm run lint`, `npm run check` and `npm run check:browser` pass. A production copy of the demo with one public language shows no Language button and passes too. Screenshots of the header at 390px and 1280px, in en-ca and ar on the site and in en and ar on the demo, closed and with the Language dropdown, the Settings bar and, on the demo, the search bar open, are in `.cache/review/header/`, with forced-colour screenshots, light and dark, of an article page on the site and of the demo's home page with the search bar open, named `*-forced-*`.
 
 ## Left open
 
