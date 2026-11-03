@@ -82,6 +82,11 @@ for (const file of files) {
         report("the Language button is not a disclosure with aria-expanded and aria-controls");
       }
     }
+    // The seal is a second link home, out of the Tab order and hidden from screen readers.
+    const seal = header.match(/<a class="brand__seal"[^>]*>/)?.[0] ?? "";
+    if (!seal.includes(`href="/${code}/"`) || !seal.includes('tabindex="-1"') || !seal.includes('aria-hidden="true"')) {
+      report(`the seal is not a link to /${code}/ with tabindex="-1" and aria-hidden="true": ${seal || "none"}`);
+    }
     if (Boolean(settings.search) !== header.includes("data-search-open")) report(`${settings.search ? "no" : "a"} Search button, with search ${settings.search ? "enabled" : "disabled"}`);
     const markers = ['class="skip-link"', 'class="announcement"', 'class="brand__name"', "data-search-open", "data-language-toggle", "settings__toggle", 'class="main-nav"'];
     const found = markers.map((marker) => [marker, header.indexOf(marker)]).filter(([, at]) => at >= 0);

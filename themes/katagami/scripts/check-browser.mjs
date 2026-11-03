@@ -371,7 +371,7 @@ const WHITE = "rgb(255, 255, 255)";
   const painted = (page) =>
     page.evaluate(() => {
       const page = getComputedStyle(document.documentElement).backgroundColor;
-      const marks = [...document.querySelectorAll(".tool__icon, .brand__seal")]
+      const marks = [...document.querySelectorAll(".tool__icon, .brand__mark")]
         .filter((element) => element.checkVisibility())
         .map((element) => [element.className, getComputedStyle(element).backgroundColor]);
       for (const item of document.querySelectorAll(".breadcrumbs li + li")) marks.push(["breadcrumb separator", getComputedStyle(item, "::before").backgroundColor]);
@@ -434,11 +434,13 @@ if (rtl) {
   await context.close();
 }
 
-// The header, as its placement specification sets it out, at phone and desktop widths, in
-// the default language and a right-to-left one: what screen readers call each control,
-// which controls are present, the focus order, the search bar and the Language dropdown
-// opening and closing from the keyboard, where each part sits, and where each control
-// opens. Axe audits the page with the dropdown and the search bar open.
+// The header, as its placement specification sets it out, at phone, tablet and desktop
+// widths, in the default language and a right-to-left one: what screen readers call each
+// control, which controls are present, the size of every target and the space between
+// them, the seal as a second link home that adds no Tab stop, the focus order, the search
+// bar and the Language dropdown opening and closing from the keyboard, where each part
+// sits, and where each control opens. Axe audits the page with the dropdown and the
+// search bar open.
 {
   const offered = publicLocales.length > 1;
   const axeIssues = async (page) => {
@@ -454,6 +456,38 @@ if (rtl) {
       const { left, right, top, bottom, width } = element.getBoundingClientRect();
       return { left, right, top, bottom, width };
     }, selector);
+  // Targets, as the specification's Target sizes asks: the seal, each tool and Reset at
+  // least 44 by 44 CSS pixels, each item of the main menu and the Language list at least
+  // 44 tall, and neighbouring targets at least 8 apart. The site name is a target too,
+  // held to the spacing only. Half a pixel is allowed for rounding.
+  const targets = (page, scope) =>
+    page.evaluate((scope) => {
+      const found = [];
+      const add = (element, name, square) => {
+        if (!element?.checkVisibility()) return;
+        const { left, right, top, bottom, width, height } = element.getBoundingClientRect();
+        found.push({ name, square, sized: name !== "site name", left, right, top, bottom, width, height });
+      };
+      const root = document.querySelector(scope);
+      add(root.querySelector(".brand__seal"), "seal", true);
+      add(root.querySelector(".brand__name"), "site name", false);
+      for (const tool of root.querySelectorAll(".tool")) add(tool, tool.className.split(" ")[1], true);
+      for (const link of root.querySelectorAll(".main-nav a, .language__list a")) add(link, `${link.closest(".main-nav") ? "menu" : "language"} item "${link.textContent.trim()}"`, false);
+      return found;
+    }, scope);
+  const targetProblems = (found) => {
+    const problems = found
+      .filter((target) => target.sized && (target.height < 43.5 || (target.square && target.width < 43.5)))
+      .map((target) => `${target.name} is ${Math.round(target.width)}×${Math.round(target.height)}`);
+    for (let i = 0; i < found.length; i++) {
+      for (let j = i + 1; j < found.length; j++) {
+        const [a, b] = [found[i], found[j]];
+        const apart = Math.hypot(Math.max(0, a.left - b.right, b.left - a.right), Math.max(0, a.top - b.bottom, b.top - a.bottom));
+        if (apart < 7.5) problems.push(`${a.name} and ${b.name} are ${apart.toFixed(1)}px apart`);
+      }
+    }
+    return problems;
+  };
   const focused = (page) =>
     page.evaluate(() => {
       const element = document.activeElement;
@@ -462,7 +496,7 @@ if (rtl) {
     });
 
   for (const locale of [primary, ...(rtl ? [rtl] : [])]) {
-    for (const width of [390, 1280]) {
+    for (const width of [390, 820, 1280]) {
       const context = await browser.newContext({ viewport: { width, height: 900 } });
       const url = home(locale);
       const where = `${url} at ${width}px`;
@@ -479,7 +513,15 @@ if (rtl) {
       expect((await count("button", language)) === (offered ? 1 : 0), `${where}: ${offered ? "no" : "a"} button named "${language}"`);
       expect((await count("button", interfaceString(locale, "search"))) === (settings.search ? 1 : 0), `${where}: Search is ${settings.search ? "missing" : "shown"}`);
       expect((await page.getByRole("navigation", { name: interfaceString(locale, "mainNavigation"), exact: true }).count()) === 1, `${where}: no main navigation landmark`);
-      expect((await page.getAttribute(".brand__seal", "aria-hidden")) === "true", `${where}: the seal is not hidden from screen readers`);
+      // The seal is a second link home, for pointer and touch: out of the Tab order and
+      // hidden from screen readers, so only the site name is heard as a link home.
+      const seal = await page.evaluate(() => {
+        const element = document.querySelector(".brand__seal");
+        return { tag: element?.localName, href: element?.getAttribute("href"), tabindex: element?.getAttribute("tabindex"), hidden: element?.getAttribute("aria-hidden") };
+      });
+      expect(seal.tag === "a" && seal.href === url, `${where}: the seal is not a link to ${url}: ${JSON.stringify(seal)}`);
+      expect(seal.tabindex === "-1", `${where}: the seal is in the Tab order`);
+      expect(seal.hidden === "true", `${where}: the seal is not hidden from screen readers`);
       for (const selector of [".settings__toggle", ...(offered ? ["[data-language-toggle]"] : [])]) {
         expect((await page.getAttribute(selector, "aria-expanded")) === "false", `${where}: ${selector} is not collapsed`);
       }
@@ -487,15 +529,8 @@ if (rtl) {
       // The tools show their names on wide screens and their icons alone on narrow ones.
       const label = await box(page, ".settings__toggle .tool__label");
       expect(width < 768 ? label.width <= 1 : label.width > 1, `${where}: the Settings label is ${label.width > 1 ? "shown" : "hidden"}`);
-      // Every tool is a target at least 24px square, as WCAG 2.2 asks.
-      const small = await page.locator(".region--header .tool").evaluateAll((tools) =>
-        tools
-          .filter((tool) => tool.checkVisibility())
-          .map((tool) => [tool.className, tool.getBoundingClientRect()])
-          .filter(([, rect]) => rect.width < 24 || rect.height < 24)
-          .map(([name, rect]) => `${name} ${Math.round(rect.width)}×${Math.round(rect.height)}`),
-      );
-      expect(small.length === 0, `${where}: tools smaller than 24px: ${small.join(", ")}`);
+      const small = targetProblems(await targets(page, ".region--header"));
+      expect(small.length === 0, `${where}: header targets: ${small.join("; ")}`);
 
       // Focus moves through the header in the order it appears on screen.
       const order = ["skip link", "site name", ...(settings.search ? ["Search"] : []), ...(offered ? ["Language"] : []), "Settings", "main menu"];
@@ -505,6 +540,23 @@ if (rtl) {
         met.push(await focused(page));
       }
       expect(met.join(", ") === order.join(", "), `${where}: focus order is ${met.join(", ")}, expected ${order.join(", ")}`);
+
+      // Tab through the whole header reaches the home page once outside the main menu,
+      // through the site name: the seal adds no stop.
+      await page.reload({ waitUntil: "networkidle" });
+      const stops = [];
+      for (let i = 0; i < 40; i++) {
+        await page.keyboard.press("Tab");
+        const stop = await page.evaluate(() => {
+          const element = document.activeElement;
+          if (!element.closest(".region--header")) return null;
+          return { home: element.matches("a[href]") && !element.getAttribute("href").startsWith("#") && new URL(element.href).pathname, menu: Boolean(element.closest(".main-nav")), name: element.className };
+        });
+        if (!stop) break;
+        stops.push(stop);
+      }
+      const homeStops = stops.filter((stop) => stop.home === url && !stop.menu);
+      expect(homeStops.length === 1 && homeStops[0].name === "brand__name", `${where}: Tab reaches the home page ${homeStops.length} times outside the main menu: ${homeStops.map((stop) => stop.name).join(", ")}`);
 
       // Where each part sits: the brand block at the start, Search at the end of the site
       // name's row, Language then Settings at the end of the row above the main menu, the
@@ -542,6 +594,8 @@ if (rtl) {
         if (list) {
           expect(list.top >= button.bottom - 1 && Math.abs(fromEnd(list) - fromEnd(button)) < 2, `${where}: the Language dropdown is not below its button, aligned to its outer edge`);
         }
+        const dropdown = targetProblems(await targets(page, ".language"));
+        expect(dropdown.length === 0, `${where}: Language dropdown targets: ${dropdown.join("; ")}`);
         const current = await page.locator('#language-list a[aria-current="true"]').allTextContents();
         const own = publicLocales.includes(locale) ? [locale.name] : [];
         expect(current.join() === own.join(), `${where}: the Language dropdown marks [${current.join(", ")}] as current`);
@@ -562,7 +616,7 @@ if (rtl) {
         expect((await page.evaluate(() => document.querySelector("[data-search-dialog]").open)) && (await focused(page)) === "search field", `${where}: the search bar did not open with focus in its field`);
         expect(bar && bar.top === 0 && Math.abs(bar.width - width) < 2, `${where}: the search bar is not across the top of the screen`);
         const close = await box(page, "[data-search-close]");
-        expect(close && close.width >= 24, `${where}: the search bar's close button is smaller than 24px`);
+        expect(close && close.width >= 43.5 && close.bottom - close.top >= 43.5, `${where}: the search bar's close button is smaller than 44px square`);
         const issues = await axeIssues(page);
         expect(issues.length === 0, `axe, search open, ${where}: ${issues.join("; ")}`);
         await page.keyboard.press("Escape");
@@ -581,6 +635,13 @@ if (rtl) {
       expect(settingsBar && settingsBar.top >= menuNow.bottom - 1 && settingsBar.bottom <= areaNow.bottom + 1, `${where}: the Settings bar is not below the main menu and above the divider`);
       expect(settingsBar && Math.abs(settingsBar.width - areaNow.width) < 2, `${where}: the Settings bar is not full width`);
       expect(await page.isVisible("[data-settings-bar] [data-preferences-reset]"), `${where}: Reset is not in the Settings bar`);
+      const reset = await box(page, "[data-settings-bar] [data-preferences-reset]");
+      expect(reset && reset.width >= 43.5 && reset.bottom - reset.top >= 43.5, `${where}: Reset is smaller than 44px square`);
+      // The contrast choices, which the theme spaces, are at least 8 pixels apart; their
+      // size, like the steppers' and the font menu's, is Infusion's.
+      const choices = await page.locator("[data-settings-bar] .fl-choice label").evaluateAll((labels) => labels.map((label) => label.getBoundingClientRect()));
+      const crowded = choices.slice(1).filter((rect, i) => Math.max(rect.left - choices[i].right, choices[i].left - rect.right) < 7.5);
+      expect(choices.length > 1 && crowded.length === 0, `${where}: contrast choices closer than 8px`);
 
       expect(errors.length === 0, `${where}: errors in the header: ${errors.join("; ")}`);
       await context.close();

@@ -72,6 +72,12 @@
   --space-l: calc(var(--space-unit) * 10);
   --space-xl: calc(var(--space-unit) * 16);
 
+  /* Targets: at least 44 CSS pixels for each control in the header and 8 between
+     neighbours, as WCAG 2.2's Target Size (Enhanced) asks. They grow with a larger text
+     size and never fall below these sizes with a smaller one. */
+  --target-size: max(2.75rem, 44px);
+  --target-spacing: max(0.5rem, 8px);
+
   /* Measure and page grid. */
   --measure: 66ch;
   --page-max: 72rem;

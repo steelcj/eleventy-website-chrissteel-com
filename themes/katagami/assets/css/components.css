@@ -72,6 +72,12 @@
   list-style: none;
 }
 
+/* The main menu's and the languages' rows keep their targets at least 8 pixels apart. */
+.main-nav ul,
+.language__list {
+  row-gap: var(--target-spacing);
+}
+
 [aria-current] {
   text-decoration-color: var(--color-accent);
   text-decoration-thickness: 2px;
@@ -104,13 +110,20 @@
   grid-column: 2;
 }
 
-/* The seal is a mark, so it never mirrors. Until a site chooses its own, it is the
-   theme's placeholder. */
+/* The seal is a link home for pointer and touch, its whole square a target. Its mark
+   never mirrors. Until a site chooses its own, it is the theme's placeholder. */
 .brand__seal {
+  display: block;
   grid-column: 1;
   grid-row: 1 / span 3;
-  inline-size: calc(var(--baseline) * 8);
-  block-size: calc(var(--baseline) * 8);
+  inline-size: max(calc(var(--baseline) * 8), var(--target-size));
+  block-size: max(calc(var(--baseline) * 8), var(--target-size));
+}
+
+.brand__mark {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
   background-color: var(--color-accent);
   mask: url("/assets/img/seal.svg") center / contain no-repeat;
 }
@@ -135,15 +148,15 @@
 }
 
 /* The tools: Search, Language and Settings. Each shows an icon and its name, and on
-   narrow screens the icon alone; the name stays for screen readers. Each is at least
-   24px square, the smallest target WCAG 2.2 allows, also when it is an icon alone. */
+   narrow screens the icon alone; the name stays for screen readers. Each is a target at
+   least 44 CSS pixels square, also when it is an icon alone. */
 .tool {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2xs);
-  min-block-size: 1.5rem;
-  min-inline-size: 1.5rem;
+  min-block-size: var(--target-size);
+  min-inline-size: var(--target-size);
   margin: 0;
   padding: 0;
   border: 0;
@@ -210,12 +223,12 @@
    colour too. */
 @media (forced-colors: active) {
   .tool__icon,
-  .brand__seal,
+  .brand__mark,
   .breadcrumbs li + li::before {
     forced-color-adjust: none;
   }
 
-  .brand__seal {
+  .brand__mark {
     background-color: CanvasText;
   }
 }
@@ -234,7 +247,7 @@
   inset-block-start: calc(100% + var(--space-2xs));
   inset-inline-end: 0;
   flex-direction: column;
-  gap: var(--space-2xs);
+  gap: var(--target-spacing);
   min-inline-size: 10rem;
   padding: var(--space-xs) var(--space-s);
   border: var(--rule-width) solid var(--color-rule);
@@ -256,6 +269,17 @@
 .language__list a,
 .language-list a {
   font-family: var(--font-system);
+}
+
+/* Each language and each main menu item is a target at least 44 CSS pixels tall, its
+   text at its usual size in the middle, and its neighbours at least 8 pixels away. The
+   main menu wraps rather than shrinks when it does not fit; see also the gaps between
+   its rows, with the lists of links above. */
+.language__list a,
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: var(--target-size);
 }
 
 /* Search: a bar fixed across the top of the screen, over the header. */
@@ -775,9 +799,11 @@ figcaption {
   inset-inline-start: 1rem;
 }
 
+/* The theme spaces the choices, so they keep the header's 8 pixels between targets.
+   Their size, like the steppers' and the font menu's, is Infusion's. */
 .region--header .settings .fl-prefsEditor .fl-choices .fl-choice label {
   margin: 0;
-  margin-inline-end: var(--space-2xs);
+  margin-inline-end: var(--target-spacing);
 }
 
 .region--header .settings .fl-prefsEditor .fl-choices .fl-choice:last-child label {

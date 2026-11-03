@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+The header follows the header placement specification's version 0.1.3, `en/docs/parts/header-placement-v0.1.3.md`, which adds the seal links and target sizes.
+
+### Added
+
+- The seal is a second link to the home page, for pointer and touch, beside the site name. It has `tabindex="-1"` and `aria-hidden="true"`, so it adds no Tab stop and is not heard: the site name stays the link everyone reaches, heard as "<site name>, link". The mark is drawn inside the link, in `.brand__mark`, so the whole square is a target.
+- Tokens for targets: `--target-size`, at least 44 CSS pixels, and `--target-spacing`, at least 8. Both grow with a larger text size and never fall below those sizes with a smaller one.
+- Checks: `npm run check` checks the seal's link, and `npm run check:browser`, at 390, 820 and 1280 pixels in the default language and a right-to-left one, checks every header target's size and the space between neighbouring targets, the Language dropdown's, the search bar's close button and Reset, the space between the contrast choices, that the seal links home, is out of the Tab order and hidden from screen readers, and that Tab through the header reaches the home page once outside the main menu.
+
+### Changed
+
+- The seal, Search, Language, Settings, the search bar's close button and Reset are targets at least 44 CSS pixels square; each item of the main menu and of the Language list is at least 44 tall, its text at its usual size; and neighbouring targets are at least 8 apart, between the rows of the main menu and of the Language list, and between the Settings bar's contrast choices. The main menu wraps rather than shrinks. Colours, type and the look of the controls are unchanged. These replace the 24-pixel minimum for the tools.
+- The Settings bar's steppers, text fields, font menu and contrast choices keep the sizes Infusion gives them, from 27 to 40 pixels tall; the theme sets only the space between the contrast choices, and Reset.
+
 ## [0.6.0] - 2026-10-31
 
 The theme is now self-contained: everything a site needs lives in this folder, so a site built on it holds only what uc-automa's `eleventy-site` layout describes. Its header follows the header placement specification, `en/docs/parts/header-placement-v0.1.1.md`. This release breaks every site built on 0.5; see Upgrading from 0.5.
