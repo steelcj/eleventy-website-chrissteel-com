@@ -6,6 +6,7 @@ The header follows the header placement specification's version 0.1.3, `en/docs/
 
 ### Added
 
+- A guide for editors, `en/docs/guides/content/creating-and-editing-content-v0.1.0.md`: pages and folders, front matter, blocks and views, images, translations, the main menu, site text, regions, turning search on, and checking the result. The theme's README links to it.
 - The seal is a second link to the home page, for pointer and touch, beside the site name. It has `tabindex="-1"` and `aria-hidden="true"`, so it adds no Tab stop and is not heard: the site name stays the link everyone reaches, heard as "<site name>, link". The mark is drawn inside the link, in `.brand__mark`, so the whole square is a target.
 - Tokens for targets: `--target-size`, at least 44 CSS pixels, and `--target-spacing`, at least 8. Both grow with a larger text size and never fall below those sizes with a smaller one.
 - Checks: `npm run check` checks the seal's link, and `npm run check:browser`, at 390, 820 and 1280 pixels in the default language and a right-to-left one, checks every header target's size and the space between neighbouring targets, the Language dropdown's, the search bar's close button and Reset, the space between the contrast choices, that the seal links home, is out of the Tab order and hidden from screen readers, and that Tab through the header reaches the home page once outside the main menu.

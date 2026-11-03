@@ -2,6 +2,8 @@
 
 A Plone-inspired Eleventy theme with a vintage Japanese, minimalist style. See the repository README and `en/docs/dev/katagami-theme-goals.md` for the specification.
 
+For writing and editing a Katagami site's content, see [Creating and Editing Content on a Katagami Site](en/docs/guides/content/creating-and-editing-content-v0.1.0.md).
+
 ## Using the theme
 
 A site adopts the theme by copying this folder, `themes/katagami/`, from a tagged release. Everything a site needs from the theme is in it, and a site connects to it through `eleventy.config.js` alone. That file sets the directories, since plugins cannot, then adds this plugin and re-exports its `config` object, which disables template syntax in Markdown. This is the complete file:
